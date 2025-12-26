@@ -26,6 +26,20 @@ pub fn transform_claude_request_in(
     // 1. System Instruction (注入动态身份防护)
     let system_instruction = build_system_instruction(&claude_req.system, &claude_req.model);
 
+    //  Map model name (decide grounding/thinking behavior)
+    let mapped_model = if has_web_search_tool {
+        "gemini-2.5-flash".to_string()
+    } else {
+        crate::proxy::common::model_mapping::map_claude_model_to_gemini(&claude_req.model)
+    };
+    
+    // Use shared grounding logic
+    let config = crate::proxy::mappers::common_utils::resolve_request_config(&claude_req.model, &mapped_model);
+    
+    // Only Gemini models support our "dummy thought" workaround.
+    // Claude models routed via Vertex/Google API often require valid thought signatures.
+    let allow_dummy_thought = config.final_model.starts_with("gemini-");
+
     // 4. Generation Config & Thinking
     let generation_config = build_generation_config(claude_req, has_web_search_tool);
     
@@ -35,7 +49,7 @@ pub fn transform_claude_request_in(
         .unwrap_or(false);
 
     // 2. Contents (Messages)
-    let contents = build_contents(&claude_req.messages, &mut tool_id_to_name, is_thinking_enabled)?;
+    let contents = build_contents(&claude_req.messages, &mut tool_id_to_name, is_thinking_enabled, allow_dummy_thought)?;
 
     // 3. Tools
     let tools = build_tools(&claude_req.tools, has_web_search_tool)?;
@@ -67,16 +81,6 @@ pub fn transform_claude_request_in(
         inner_request["tools"] = tools_val;
     }
 
-    //  Map model name first
-    let mapped_model = if has_web_search_tool {
-        "gemini-2.5-flash".to_string()
-    } else {
-        crate::proxy::common::model_mapping::map_claude_model_to_gemini(&claude_req.model)
-    };
-    
-    // Use shared grounding logic
-    let config = crate::proxy::mappers::common_utils::resolve_request_config(&claude_req.model, &mapped_model);
-    
     // Inject googleSearch tool if needed (and not already done by build_tools)
     if config.inject_google_search && !has_web_search_tool {
         crate::proxy::mappers::common_utils::inject_google_search_tool(&mut inner_request);
@@ -168,6 +172,7 @@ fn build_contents(
     messages: &[Message],
     tool_id_to_name: &mut HashMap<String, String>,
     is_thinking_enabled: bool,
+    allow_dummy_thought: bool,
 ) -> Result<Value, String> {
     let mut contents = Vec::new();
 
@@ -289,7 +294,7 @@ fn build_contents(
         // Fix for "Thinking enabled, assistant message must start with thinking block" 400 error
         // ONLY apply this for the LAST assistant message (Pre-fill scenario)
         // Historical assistant messages MUST NOT have dummy thinking blocks without signatures
-        if role == "model" && is_thinking_enabled && i == msg_count - 1 {
+        if allow_dummy_thought && role == "model" && is_thinking_enabled && i == msg_count - 1 {
             let has_thought_part = parts.iter().any(|p| {
                 p.get("thought").and_then(|v| v.as_bool()).unwrap_or(false)
             });

@@ -77,6 +77,9 @@ fn clean_json_schema_recursive(value: &mut Value) {
                 "format",
                 "default",
                 "uniqueItems",
+                // Claude/JSONSchema extensions not accepted by Gemini
+                "enumCaseInsensitive",
+                "enumNormalizeWhitespace",
                 "minLength",
                 "maxLength",
                 "minimum",
@@ -108,20 +111,11 @@ fn clean_json_schema_recursive(value: &mut Value) {
             // 但目前先只移除明确不支持的元数据关键字
             for field in fields_to_remove {
                 // 对于 anyOf/oneOf/allOf，我们暂不移除，因为这涉及逻辑结构
-                // 上面的 fields_to_remove 列表包含了它们，所以下面要加判断
                 if field == "anyOf" || field == "oneOf" || field == "allOf" {
                     continue; 
                 }
                 map.remove(field);
             }
-            
-            // 移除特定不支持的字段 (硬编码列表中的)
-            map.remove("$schema");
-            map.remove("additionalProperties");
-            map.remove("format");
-            map.remove("default");
-            map.remove("uniqueItems");
-            // ... (上面的循环已经覆盖了大部分)
 
             // 2. 处理 type 字段 (Union Types -> Primary Type + Uppercase)
             if let Some(type_val) = map.get_mut("type") {
@@ -146,24 +140,9 @@ fn clean_json_schema_recursive(value: &mut Value) {
                 }
             }
 
-            // 3. 递归处理 properties, items, allOf, anyOf, oneOf 等
-            for (key, v) in map.iter_mut() {
-                // 特殊处理 properties 和 items 的子节点
-                if key == "properties" {
-                    if let Some(props_obj) = v.as_object_mut() {
-                        for (_, prop_val) in props_obj.iter_mut() {
-                            clean_json_schema_recursive(prop_val);
-                        }
-                    }
-                } else if key == "items" {
-                    clean_json_schema_recursive(v);
-                } else if key == "allOf" || key == "anyOf" || key == "oneOf" {
-                    if let Some(arr) = v.as_array_mut() {
-                        for item in arr {
-                            clean_json_schema_recursive(item);
-                        }
-                    }
-                }
+            // 3. 递归处理所有子节点 (Schema 中可能存在任意嵌套字段)
+            for v in map.values_mut() {
+                clean_json_schema_recursive(v);
             }
         }
         Value::Array(arr) => {
