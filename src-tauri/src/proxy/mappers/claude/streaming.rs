@@ -547,7 +547,17 @@ impl<'a> PartProcessor<'a> {
             );
         }
 
-        // 暂存签名
+        // [IMPROVED] Store signature to global storage immediately, not just on function calls
+        // This improves signature availability for subsequent requests
+        if let Some(ref sig) = signature {
+            store_thought_signature(sig);
+            tracing::debug!(
+                "[Claude-SSE] Captured thought_signature from thinking block (length: {})",
+                sig.len()
+            );
+        }
+
+        // 暂存签名 (for local block handling)
         self.state.store_signature(signature);
 
         chunks
