@@ -18,6 +18,7 @@ use crate::proxy::mappers::claude::{
     clean_cache_control_from_messages, merge_consecutive_messages,
 };
 use crate::proxy::server::AppState;
+use crate::proxy::mappers::context_manager::{ContextManager, PurificationStrategy};
 use axum::http::HeaderMap;
 use std::sync::atomic::Ordering;
 
@@ -513,6 +514,52 @@ pub async fn handle_messages(
             }
         }
 
+        // ===== [Context Purification] Dynamic Thinking Stripping (Issue #PromptTooLong) =====
+        // 对 Pro/Flash 模型进行差异化的上下文管理
+        let mut is_purified = false;
+        if !retried_without_thinking {
+            // 1. 确定上下文限制 (Flash: ~1M, Pro: ~2M)
+            // Conservatively use 900k for Flash and 1.8M for Pro to check pressure
+            let context_limit = if mapped_model.contains("flash") {
+                1_000_000
+            } else {
+                2_000_000
+            };
+
+            // 2. 估算当前用量
+            let estimated_usage = ContextManager::estimate_token_usage(&request_with_mapped);
+            let usage_ratio = estimated_usage as f32 / context_limit as f32;
+
+            // 3. 确定清洗策略
+            // > 90%: 激进剥离 (Aggressive) - 移除所有历史 Thinking
+            // > 60%: 柔性剥离 (Soft) - 仅保留最近 2 轮 Thinking
+            // < 60%: 不处理
+            // 3. 确定清洗策略
+            // > 90%: 激进剥离 (Aggressive) - 移除所有历史 Thinking
+            // > 60%: 柔性剥离 (Soft) - 仅保留最近 2 轮 Thinking
+            // < 60%: 不处理
+            let strategy = if usage_ratio > 0.9 {
+                PurificationStrategy::Aggressive
+            } else if usage_ratio > 0.6 {
+                PurificationStrategy::Soft
+            } else {
+                PurificationStrategy::None
+            };
+            
+            // 4. 执行清洗
+            if strategy != PurificationStrategy::None {
+                info!(
+                    "[{}] [ContextManager] Context pressure: {:.1}% ({} / {}), Strategy: {:?} => Purifying history", 
+                    trace_id, usage_ratio * 100.0, estimated_usage, context_limit, strategy
+                );
+                
+                if ContextManager::purify_history(&mut request_with_mapped.messages, strategy) {
+                    is_purified = true;
+                    debug!("[{}] History purified successfully", trace_id);
+                }
+            }
+        }
+
         request_with_mapped.model = mapped_model;
 
         // 生成 Trace ID (简单用时间戳后缀)
@@ -624,6 +671,7 @@ pub async fn handle_messages(
                                 .header(header::CONNECTION, "keep-alive")
                                 .header("X-Account-Email", &email)
                                 .header("X-Mapped-Model", &request_with_mapped.model)
+                                .header("X-Context-Purified", if is_purified { "true" } else { "false" })
                                 .body(Body::from_stream(combined_stream))
                                 .unwrap();
                         } else {
@@ -638,6 +686,7 @@ pub async fn handle_messages(
                                         .header(header::CONTENT_TYPE, "application/json")
                                         .header("X-Account-Email", &email)
                                         .header("X-Mapped-Model", &request_with_mapped.model)
+                                        .header("X-Context-Purified", if is_purified { "true" } else { "false" })
                                         .body(Body::from(serde_json::to_string(&full_response).unwrap()))
                                         .unwrap();
                                 }

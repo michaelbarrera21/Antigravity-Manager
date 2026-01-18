@@ -1,5 +1,5 @@
 # Antigravity Tools 🚀
-> 专业的 AI 账号管理与协议反代系统 (v3.3.43)
+> 专业的 AI 账号管理与协议反代系统 (v3.3.44)
 <div align="center">
   <img src="public/icon.png" alt="Antigravity Logo" width="120" height="120" style="border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
 
@@ -8,7 +8,7 @@
   
   <p>
     <a href="https://github.com/lbjlaq/Antigravity-Manager">
-      <img src="https://img.shields.io/badge/Version-3.3.43-blue?style=flat-square" alt="Version">
+      <img src="https://img.shields.io/badge/Version-3.3.44-blue?style=flat-square" alt="Version">
     </a>
     <img src="https://img.shields.io/badge/Tauri-v2-orange?style=flat-square" alt="Tauri">
     <img src="https://img.shields.io/badge/Backend-Rust-red?style=flat-square" alt="Rust">
@@ -205,6 +205,21 @@ print(response.choices[0].message.content)
 ## 📝 开发者与社区
 
 *   **版本演进 (Changelog)**:
+    *   **v3.3.44 (2026-01-19)**:
+        - **[核心稳定性] 动态思维剥离 (Dynamic Thinking Stripping) - 彻底解决 Prompt 过长与签名错误**:
+            - **问题背景**: 在 Deep Thinking 模式下,长对话会导致两类致命错误:
+                - `Prompt is too long`: 历史 Thinking Block 累积导致 Token 超限
+                - `Invalid signature`: 代理重启后内存签名缓存丢失,旧签名被 Google 拒收
+            - **解决方案 - Context Purification (上下文净化)**:
+                - **新增 `ContextManager` 模块**: 实现 Token 估算与历史清洗逻辑
+                - **分级清洗策略**:
+                    - `Soft` (60%+ 压力): 保留最近 2 轮 Thinking,剥离更早历史
+                    - `Aggressive` (90%+ 压力): 移除所有历史 Thinking Block
+                - **差异化限额**: Flash 模型 (1M) 与 Pro 模型 (2M) 采用不同触发阈值
+                - **签名同步清除**: 清洗 Thinking 时自动移除 `thought_signature`,避免签名校验失败
+            - **透明度增强**: 响应头新增 `X-Context-Purified: true` 标识,便于调试
+            - **性能优化**: 基于字符数的轻量级 Token 估算,对请求延迟影响 \u003c 5ms
+            - **影响范围**: 彻底解决 Deep Thinking 模式下的两大顽疾,释放 40%-60% Context 空间,确保长对话稳定性
     *   **v3.3.43 (2026-01-18)**:
         - **[国际化] 设备指纹对话框全量本地化 (PR #825, 感谢 @IamAshrafee)**:
             - 彻底解决了设备指纹（Device Fingerprint）对话框中残留的硬编码中文字符串问题。

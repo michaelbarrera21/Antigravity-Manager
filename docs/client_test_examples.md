@@ -67,3 +67,90 @@
 RUST_LOG=debug npm run tauri dev
 ```
 在日志中搜索 `[Claude-Request]`，关注消息角色的排列顺序。
+
+---
+
+## 5. 验证 Thinking 签名持久化与重启容错 (Proxy Restart Test)
+
+此测试模拟代理服务主要逻辑：验证当代理重启（内存签名缓存丢失）后，携带旧签名的历史消息是否会导致 400 错误。这是复现 `Invalid signature` 最有效的方法。
+
+### 测试流程
+1.  **生成 Thinking (Step 1)**:
+    *   **指令**：`详细分析 proxy/mappers/claude/request.rs 的代码结构，特别是它是如何处理 Thinking Block 的。请展示思维过程。`
+    *   *状态*：Claude CLI 会接收到包含 Thinking 和 Signature 的响应。
+
+2.  **模拟环境变更 (Step 2)**:
+    *   **动作**：**保持当前 Claude CLI 会话不关闭**。
+    *   **动作**：在另一个终端完全重启 Antigravity (或 `npm run tauri dev`)。
+    *   *原理*：重启会清空代理内存中的“签名白名单”，这意味着 Step 1 中下发的签名现在对代理来说是“未知/不可信”的。
+
+3.  **触发历史重放 (Step 3)**:
+    *   **指令**：`根据上面的分析，总结一下签名验证的核心逻辑。`
+    *   *原理*：CLI 会将 Step 1 中的 Thinking Block + Signature 作为历史记录发送给重启后的代理。
+
+### 预期结果 (验证修复)
+*   **如果不通过**：报错 `Invalid signature in thinking block` (因为代理无法验证该签名，直接透传给了 Google，被 Google 拒收)。
+*   **如果通过 (当前版本)**：代理发现签名不在内存缓存中，**自动触发降级逻辑**（剥离 Thinking Block 或作为纯文本发送），对话正常继续，无报错。
+
+---
+
+## 6. 验证动态思维剥离 (Dynamic Thinking Stripping)
+
+此测试验证系统能否在**高 Context 压力**或**签名失效**场景下，自动剥离无用的历史 Thinking Block，从而解决 "Prompt is too long" 和 "Invalid signature" 错误。
+
+### 前置条件
+*   开启 Debug 日志: `RUST_LOG=debug npm run tauri dev`
+*   确保使用支持 Thinking 的模型 (如 `claude-3-7-sonnet` 或映射后的 `gemini-2.0-flash-thinking-exp`)
+
+### 验证场景 A: 模拟超长 Context 压力 (Simulate High Load)
+
+此场景验证当对话历史接近 Token 上限时，系统是否会自动清理旧的 Thinking。
+
+1.  **构造长对话**:
+    *   **方法 1 (自动生成)**: 运行 `docs/generate_long_payload.sh` 生成 2MB 测试文件。
+        ```bash
+        chmod +x docs/generate_long_payload.sh
+        ./docs/generate_long_payload.sh
+        cat docs/long_context_payload.txt | pbcopy
+        ```
+        然后将剪贴板内容多次粘贴给 Claude，直到感知到显著延迟或收到上下文警告。
+
+    *   **方法 2 (Deep Thinking 诱导 - 持续施压)**:
+        以下 Prompts 经过设计，能诱导模型进行极长的思维推理。可以轮流发送：
+
+        > **Round 1 (History)**: "Please analyze the history of computing from the abacus to quantum computers. For every major milestone (at least 20), perform a deep 'thinking' block simulating the thought process of the inventors. Detailed thinking is required. Aim for maximum output tokens."
+
+        > **Round 2 (Math/Logic)**: "Prove the Riemann Hypothesis. Just kidding. But please perform a deep, step-by-step derivation of the Navier-Stokes existence and smoothness problem's core challenges. Explore 10 different mathematical approaches, evaluating the pros and cons of each in extreme detail."
+
+        > **Round 3 (System Architecture)**: "Design a distributed system capable of handling 100 billion requests per second. Detail the consensus execution flow (Paxos/Raft) for a single transaction across 5000 nodes. Simulate the network partition handling logic in your 'thinking' process for at least 50 failure scenarios."
+
+        > **Round 4 (Literature)**: "Write a recursive story where the protagonist is a recursive function. The story must nest at least 20 levels deep, and for each level, you must 'think' about the symbolic meaning of that recursion depth before writing the narrative part."
+
+2.  **观察日志**:
+    *   在终端搜索 `[ContextManager]`。
+    *   **预期日志**:
+        ```
+        [INFO] [ContextManager] Context pressure: 95.0% (1900000 / 2000000), Strategy: Aggressive => Purifying history
+        [DEBUG] History purified successfully
+        ```
+
+3.  **验证结果**:
+    *   Request 成功发送给 Gemini，没有报 "Prompt is too long"。
+    *   HTTP 响应头包含 `X-Context-Purified: true`。
+    *   Claude CLI 用户侧无感（历史记录仍在 CLI 本地显示，但服务端已净化）。
+
+### 验证场景 B: 签名失效免疫 (Signature Immunity via Stripping)
+
+此场景验证即使不触发重试逻辑，高负载下的主动剥离也能顺带解决签名问题。
+
+1.  **生成带签名的 Thinking**:
+    *   **指令**: `思考一下 Rust 的所有权机制，写 500 字。`
+
+2.  **重启 Proxy 且注入虚假负载 (可选)**:
+    *   重启代理（清空签名缓存）。
+    *   继续对话。此时带有旧签名的 Thinking 会被发送给代理。
+
+3.  **预期结果**:
+    *   如果上下文压力较大触发了 Stripping，或者因签名报错触发了 RetriedWithoutThinking，系统会剥离 Thinking Block。
+    *   **关键点**: 一旦 Thinking Block 被剥离，`thought_signature` 也会随之消失。
+    *   Gemini 收到的是纯文本历史，**绝不会报 Invalid Signature**。
