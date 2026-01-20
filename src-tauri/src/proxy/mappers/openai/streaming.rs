@@ -317,7 +317,7 @@ pub fn create_openai_sse_stream(
                                                     ]
                                                 });
                                                 
-                                                // [FIX] 将 usage 嵌入到 chunk 中 (参考 CLIProxyAPI)
+                                                // [FIX] 将 usage 嵌入到 chunk 中
                                                 if let Some(ref usage) = final_usage {
                                                     openai_chunk["usage"] = serde_json::to_value(usage).unwrap();
                                                 }
