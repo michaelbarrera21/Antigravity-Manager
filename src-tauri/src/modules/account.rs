@@ -604,6 +604,18 @@ pub async fn switch_account_for_instance(
     // 获取保存的启动参数（用于重启时保持相同参数）
     let mut saved_args: Option<Vec<String>> = instance.last_launch_args.clone();
 
+    // [Fix] 检查并清理无效参数 (e.g. 包含 --type= 的辅助进程参数)
+    if let Some(ref args) = saved_args {
+        let args_str = args.join(" ");
+        if args_str.contains("--type=") {
+            crate::modules::logger::log_warn(&format!(
+                "Instance {} has invalid saved launch args (contains --type=), discarding: {:?}",
+                instance.name, args
+            ));
+            saved_args = None;
+        }
+    }
+
     if was_running && restart_if_running {
         // 在停止前获取当前运行的启动参数
         if saved_args.is_none() {
