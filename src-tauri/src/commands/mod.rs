@@ -962,7 +962,6 @@ pub async fn stop_instance(instance_id: String) -> Result<(), String> {
                 instance.name, args_without_exe
             ));
             instance.last_launch_args = Some(args_without_exe);
-            let _ = modules::instance::save_instance(&instance);
         } else if args_str.contains("--type=") {
             modules::logger::log_warn(&format!(
                 "Discarding invalid args for instance {} (contains --type=)",
@@ -971,22 +970,121 @@ pub async fn stop_instance(instance_id: String) -> Result<(), String> {
         }
     }
 
+    // 清除缓存的 PID（实例已停止）
+    instance.last_root_pid = None;
+    let _ = modules::instance::save_instance(&instance);
+
     modules::process::close_instance(&instance.user_data_dir, 20)
 }
 
 /// 获取实例运行状态
+/// 同时更新 last_root_pid 和 last_launch_args（如果实例正在运行）
 #[tauri::command]
 pub async fn get_instance_status(instance_id: String) -> Result<bool, String> {
-    let instance = modules::instance::load_instance(&instance_id)?;
+    let mut instance = modules::instance::load_instance(&instance_id)?;
 
-    // 默认实例没有 --user-data-dir 参数，需要使用专门的检测方法
-    if instance.is_default {
-        Ok(modules::process::is_default_instance_running())
+    // 使用缓存的 PID 进行快速检测
+    let cached_pid = instance.last_root_pid;
+
+    // 检测是否运行
+    let (is_running, new_pid, new_args) = if instance.is_default {
+        // 默认实例
+        let running = modules::process::is_default_instance_running();
+        if running {
+            // 尝试获取 PID 和参数
+            if let Some((pid, args)) = modules::process::get_instance_root_pid_and_args(
+                &instance.user_data_dir,
+                true,
+                cached_pid,
+            ) {
+                (true, Some(pid), Some(args))
+            } else {
+                (true, None, None)
+            }
+        } else {
+            (false, None, None)
+        }
     } else {
-        Ok(modules::process::is_instance_running(
-            &instance.user_data_dir,
-        ))
+        // 非默认实例：优先使用缓存 PID 检测
+        if let Some(pid) = cached_pid {
+            if modules::process::is_pid_valid_instance_root(pid, &instance.user_data_dir, false) {
+                // 缓存 PID 仍有效
+                if let Some((_, args)) = modules::process::get_instance_root_pid_and_args(
+                    &instance.user_data_dir,
+                    false,
+                    Some(pid),
+                ) {
+                    (true, Some(pid), Some(args))
+                } else {
+                    (true, Some(pid), None)
+                }
+            } else {
+                // 缓存 PID 无效，重新检测
+                let running = modules::process::is_instance_running(&instance.user_data_dir);
+                if running {
+                    if let Some((pid, args)) = modules::process::get_instance_root_pid_and_args(
+                        &instance.user_data_dir,
+                        false,
+                        None,
+                    ) {
+                        (true, Some(pid), Some(args))
+                    } else {
+                        (true, None, None)
+                    }
+                } else {
+                    (false, None, None)
+                }
+            }
+        } else {
+            // 无缓存 PID
+            let running = modules::process::is_instance_running(&instance.user_data_dir);
+            if running {
+                if let Some((pid, args)) = modules::process::get_instance_root_pid_and_args(
+                    &instance.user_data_dir,
+                    false,
+                    None,
+                ) {
+                    (true, Some(pid), Some(args))
+                } else {
+                    (true, None, None)
+                }
+            } else {
+                (false, None, None)
+            }
+        }
+    };
+
+    // 更新实例配置（只在 PID 变化时保存）
+    let mut need_save = false;
+
+    if is_running {
+        if new_pid != instance.last_root_pid {
+            instance.last_root_pid = new_pid;
+            need_save = true;
+        }
+        if let Some(args) = new_args {
+            // 只在参数有效且与现有不同时更新
+            let args_str = args.join(" ");
+            if !args_str.contains("--type=") {
+                if instance.last_launch_args.as_ref() != Some(&args) {
+                    instance.last_launch_args = Some(args);
+                    need_save = true;
+                }
+            }
+        }
+    } else {
+        // 实例未运行，清除缓存的 PID
+        if instance.last_root_pid.is_some() {
+            instance.last_root_pid = None;
+            need_save = true;
+        }
     }
+
+    if need_save {
+        let _ = modules::instance::save_instance(&instance);
+    }
+
+    Ok(is_running)
 }
 
 /// 获取默认实例（如果不存在则创建）

@@ -1282,6 +1282,127 @@ pub fn is_default_instance_running() -> bool {
     false
 }
 
+/// 检查 PID 是否是有效的实例主进程
+/// 返回 true 当且仅当：
+/// 1. 进程存在
+/// 2. 是 antigravity.exe
+/// 3. 命令行匹配 user_data_dir（或默认实例无 --user-data-dir）
+/// 4. 命令行不含 --type=（非辅助进程）
+pub fn is_pid_valid_instance_root(pid: u32, user_data_dir: &Path, is_default: bool) -> bool {
+    #[cfg(target_os = "windows")]
+    refresh_process_command_line_cache();
+
+    let mut system = System::new();
+    system.refresh_processes(sysinfo::ProcessesToUpdate::All);
+
+    let sysinfo_pid = sysinfo::Pid::from_u32(pid);
+    let process = match system.process(sysinfo_pid) {
+        Some(p) => p,
+        None => return false,
+    };
+
+    // 检查进程名
+    let name = process.name().to_string_lossy().to_lowercase();
+    if name != "antigravity.exe" && !name.starts_with("antigravity") {
+        return false;
+    }
+
+    // 获取命令行
+    let cmdline = {
+        #[cfg(target_os = "windows")]
+        {
+            get_process_command_line(pid)
+                .unwrap_or_default()
+                .to_lowercase()
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            process
+                .cmd()
+                .iter()
+                .map(|arg| arg.to_string_lossy().to_lowercase())
+                .collect::<Vec<String>>()
+                .join(" ")
+        }
+    };
+
+    // 检查是否是辅助进程
+    if cmdline.contains("--type=") {
+        return false;
+    }
+
+    // 检查 user_data_dir 匹配
+    let user_data_dir_str = user_data_dir.to_string_lossy().to_lowercase();
+    let user_data_dir_normalized = user_data_dir_str.replace('/', "\\");
+    let cmdline_normalized = cmdline.replace('/', "\\");
+
+    if is_default {
+        // 默认实例：命令行不应包含 --user-data-dir=
+        !cmdline_normalized.contains("--user-data-dir=")
+    } else {
+        // 非默认实例：命令行应包含指定的 user_data_dir
+        cmdline_normalized.contains(&user_data_dir_normalized)
+    }
+}
+
+/// 获取实例主进程 PID 和参数（优先使用缓存的 PID）
+/// - 如果 cached_pid 有效，直接返回其参数
+/// - 否则重新遍历查找
+pub fn get_instance_root_pid_and_args(
+    user_data_dir: &Path,
+    is_default: bool,
+    cached_pid: Option<u32>,
+) -> Option<(u32, Vec<String>)> {
+    // 快速路径：检查缓存的 PID 是否仍有效
+    if let Some(pid) = cached_pid {
+        if is_pid_valid_instance_root(pid, user_data_dir, is_default) {
+            #[cfg(target_os = "windows")]
+            {
+                if let Some(cmdline) = get_process_command_line(pid) {
+                    let args = parse_cmdline_to_args(&cmdline);
+                    if !args.is_empty() {
+                        // 跳过第一个参数（可执行文件路径）
+                        let args_without_exe: Vec<String> = args.into_iter().skip(1).collect();
+                        crate::modules::logger::log_info(&format!(
+                            "Using cached root PID {} for instance",
+                            pid
+                        ));
+                        return Some((pid, args_without_exe));
+                    }
+                }
+            }
+            #[cfg(not(target_os = "windows"))]
+            {
+                let mut system = System::new();
+                system.refresh_processes(sysinfo::ProcessesToUpdate::All);
+                if let Some(process) = system.process(sysinfo::Pid::from_u32(pid)) {
+                    let args: Vec<String> = process
+                        .cmd()
+                        .iter()
+                        .skip(1) // 跳过可执行文件路径
+                        .map(|s| s.to_string_lossy().to_string())
+                        .collect();
+                    if !args.is_empty() {
+                        return Some((pid, args));
+                    }
+                }
+            }
+        }
+    }
+
+    // 慢速路径：遍历查找
+    if let Some(args) = get_instance_root_process_args(user_data_dir) {
+        // 需要找到对应的 PID
+        if let Some(pid) = get_instance_root_pid(user_data_dir) {
+            // 跳过第一个参数已在 get_instance_root_process_args 中处理
+            let args_without_exe: Vec<String> = args.into_iter().skip(1).collect();
+            return Some((pid, args_without_exe));
+        }
+    }
+
+    None
+}
+
 /// 获取实例主进程的命令行参数
 pub fn get_instance_root_process_args(user_data_dir: &Path) -> Option<Vec<String>> {
     #[cfg(target_os = "windows")]
@@ -1302,13 +1423,61 @@ pub fn get_instance_root_process_args(user_data_dir: &Path) -> Option<Vec<String
         let mut current = start_pid;
         loop {
             let process = system.process(current)?;
-            let parent_pid = process.parent()?;
+            let parent_pid = match process.parent() {
+                Some(pid) => pid,
+                None => {
+                    // 没有父进程，检查当前进程是否是辅助进程
+                    // 如果是辅助进程（孤儿辅助进程），返回 None
+                    #[cfg(target_os = "windows")]
+                    {
+                        if let Some(cmdline) = get_process_command_line(current.as_u32()) {
+                            if cmdline.contains("--type=") {
+                                return None; // 孤儿辅助进程，跳过
+                            }
+                        }
+                    }
+                    #[cfg(not(target_os = "windows"))]
+                    {
+                        let args_str = process
+                            .cmd()
+                            .iter()
+                            .map(|arg| arg.to_string_lossy().to_string())
+                            .collect::<Vec<String>>()
+                            .join(" ");
+                        if args_str.contains("--type=") {
+                            return None;
+                        }
+                    }
+                    return Some(current); // 有效的顶层进程
+                }
+            };
 
             if let Some(parent) = system.process(parent_pid) {
                 let parent_name = parent.name().to_string_lossy();
                 if is_antigravity_name(&parent_name) {
                     current = parent_pid;
                     continue;
+                }
+            }
+            // 父进程不存在或不是 antigravity，检查当前进程
+            #[cfg(target_os = "windows")]
+            {
+                if let Some(cmdline) = get_process_command_line(current.as_u32()) {
+                    if cmdline.contains("--type=") {
+                        return None; // 辅助进程，跳过
+                    }
+                }
+            }
+            #[cfg(not(target_os = "windows"))]
+            {
+                let args_str = process
+                    .cmd()
+                    .iter()
+                    .map(|arg| arg.to_string_lossy().to_string())
+                    .collect::<Vec<String>>()
+                    .join(" ");
+                if args_str.contains("--type=") {
+                    return None;
                 }
             }
             return Some(current);

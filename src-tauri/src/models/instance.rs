@@ -29,6 +29,9 @@ pub struct Instance {
     /// 上次启动时的命令行参数（用于停止后重新启动）
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_launch_args: Option<Vec<String>>,
+    /// 上次检测到的主进程 PID（用于快速验证实例是否运行）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_root_pid: Option<u32>,
     /// 创建时间戳
     pub created_at: i64,
 }
@@ -45,6 +48,7 @@ impl Instance {
             current_account_id: None,
             is_default: false,
             last_launch_args: None,
+            last_root_pid: None,
             created_at: chrono::Utc::now().timestamp(),
         }
     }
