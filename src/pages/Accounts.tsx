@@ -327,6 +327,7 @@ function Accounts() {
                 // 只有一个实例，直接在该实例中切换
                 setSwitchingAccountId(accountId);
                 await switchAccountInInstance(allInstances[0].id, accountId);
+                await fetchAccounts(); // 刷新账户列表以更新UI
                 showToast(t('common.success'), 'success');
             } else {
                 // 多个实例，获取运行状态并弹出选择对话框
@@ -364,6 +365,7 @@ function Accounts() {
 
         try {
             await switchAccountInInstance(instanceId, pendingSwitchAccountId);
+            await fetchAccounts(); // 刷新账户列表以更新UI
             showToast(t('common.success'), 'success');
         } catch (error) {
             console.error('[Accounts] Switch in instance failed:', error);
