@@ -1348,6 +1348,12 @@ pub fn get_instance_root_process_args(user_data_dir: &Path) -> Option<Vec<String
             #[cfg(target_os = "windows")]
             {
                 if let Some(cmdline) = get_process_command_line(root_pid.as_u32()) {
+                    // [Fix] 跳过辅助进程 (crashpad-handler 等)
+                    // 如果被识别为 root 的进程带有 --type 参数，说明它不是真正的主进程
+                    if cmdline.contains("--type=") {
+                        continue;
+                    }
+
                     let args = parse_cmdline_to_args(&cmdline);
                     if !args.is_empty() {
                         crate::modules::logger::log_info(&format!(
@@ -1367,6 +1373,13 @@ pub fn get_instance_root_process_args(user_data_dir: &Path) -> Option<Vec<String
                         .iter()
                         .map(|s| s.to_string_lossy().to_string())
                         .collect();
+
+                    // [Fix] Skip helper processes
+                    let args_str = args.join(" ");
+                    if args_str.contains("--type=") {
+                        continue;
+                    }
+
                     if !args.is_empty() {
                         return Some(args);
                     }
