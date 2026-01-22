@@ -925,12 +925,19 @@ pub async fn start_instance(instance_id: String) -> Result<(), String> {
 
     // 如果有保存的启动参数，使用它们；否则使用默认参数
     if let Some(ref saved_args) = instance.last_launch_args {
-        if !saved_args.is_empty() {
+        // [Fix] 检查参数是否有效（不包含 --type=）
+        let args_str = saved_args.join(" ");
+        if !saved_args.is_empty() && !args_str.contains("--type=") {
             modules::logger::log_info(&format!(
                 "Starting instance {} with saved args: {:?}",
                 instance.name, saved_args
             ));
             return modules::process::start_instance_with_args(&instance, saved_args.clone());
+        } else if args_str.contains("--type=") {
+            modules::logger::log_warn(&format!(
+                "Instance {} has invalid saved args (contains --type=), using default args",
+                instance.name
+            ));
         }
     }
 
@@ -946,13 +953,21 @@ pub async fn stop_instance(instance_id: String) -> Result<(), String> {
     if let Some(args) = modules::process::get_instance_root_process_args(&instance.user_data_dir) {
         // 跳过第一个参数（可执行文件路径），只保存实际的启动参数
         let args_without_exe: Vec<String> = args.into_iter().skip(1).collect();
-        if !args_without_exe.is_empty() {
+        let args_str = args_without_exe.join(" ");
+
+        // [Fix] 只保存有效参数（不包含 --type=）
+        if !args_without_exe.is_empty() && !args_str.contains("--type=") {
             modules::logger::log_info(&format!(
                 "Saving launch args for instance {}: {:?}",
                 instance.name, args_without_exe
             ));
             instance.last_launch_args = Some(args_without_exe);
             let _ = modules::instance::save_instance(&instance);
+        } else if args_str.contains("--type=") {
+            modules::logger::log_warn(&format!(
+                "Discarding invalid args for instance {} (contains --type=)",
+                instance.name
+            ));
         }
     }
 

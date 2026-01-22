@@ -95,7 +95,24 @@ pub fn load_instance(instance_id: &str) -> Result<Instance, String> {
     let content = fs::read_to_string(&instance_path)
         .map_err(|e| format!("failed_to_read_instance_data: {}", e))?;
 
-    serde_json::from_str(&content).map_err(|e| format!("failed_to_parse_instance_data: {}", e))
+    let mut instance: Instance = serde_json::from_str(&content)
+        .map_err(|e| format!("failed_to_parse_instance_data: {}", e))?;
+
+    // [Fix] 自动清理无效的 last_launch_args（包含 --type= 的辅助进程参数）
+    if let Some(ref args) = instance.last_launch_args {
+        let args_str = args.join(" ");
+        if args_str.contains("--type=") {
+            logger::log_warn(&format!(
+                "Instance {} has invalid last_launch_args (contains --type=), cleaning up",
+                instance.name
+            ));
+            instance.last_launch_args = None;
+            // 自动保存清理后的实例配置
+            let _ = save_instance(&instance);
+        }
+    }
+
+    Ok(instance)
 }
 
 /// 保存实例数据
