@@ -76,16 +76,18 @@ function Accounts() {
     // 多实例支持：获取实例列表并构建账号到实例名称的映射
     const [instances, setInstances] = useState<Instance[]>([]);
 
+    // 刷新实例列表的函数
+    const refreshInstances = async () => {
+        try {
+            const data = await listInstances();
+            setInstances(data);
+        } catch (error) {
+            console.error('Failed to fetch instances:', error);
+        }
+    };
+
     useEffect(() => {
-        const fetchInstances = async () => {
-            try {
-                const data = await listInstances();
-                setInstances(data);
-            } catch (error) {
-                console.error('Failed to fetch instances:', error);
-            }
-        };
-        fetchInstances();
+        refreshInstances();
     }, []);
 
     // 构建账号ID到实例名称的映射（基于 current_account_id，表示"正在使用"）
@@ -327,7 +329,8 @@ function Accounts() {
                 // 只有一个实例，直接在该实例中切换
                 setSwitchingAccountId(accountId);
                 await switchAccountInInstance(allInstances[0].id, accountId);
-                await fetchAccounts(); // 刷新账户列表以更新UI
+                await fetchAccounts(); // 刷新账户列表
+                await refreshInstances(); // 刷新实例列表以更新角标
                 showToast(t('common.success'), 'success');
             } else {
                 // 多个实例，获取运行状态并弹出选择对话框
@@ -365,7 +368,8 @@ function Accounts() {
 
         try {
             await switchAccountInInstance(instanceId, pendingSwitchAccountId);
-            await fetchAccounts(); // 刷新账户列表以更新UI
+            await fetchAccounts(); // 刷新账户列表
+            await refreshInstances(); // 刷新实例列表以更新角标
             showToast(t('common.success'), 'success');
         } catch (error) {
             console.error('[Accounts] Switch in instance failed:', error);
