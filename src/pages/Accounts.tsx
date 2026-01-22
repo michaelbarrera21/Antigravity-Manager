@@ -14,6 +14,9 @@ import ModalDialog from '../components/common/ModalDialog';
 import Pagination from '../components/common/Pagination';
 import { showToast } from '../components/common/ToastContainer';
 import { Account } from '../types/account';
+import { Instance } from '../types/instance';
+import { listInstances, switchAccountInInstance, getInstanceStatus } from '../services/instanceService';
+import InstanceSelectDialog from '../components/accounts/InstanceSelectDialog';
 import { cn } from '../utils/cn';
 
 // ... (省略中间代码)
@@ -63,6 +66,39 @@ function Accounts() {
     const [isWarmupConfirmOpen, setIsWarmupConfirmOpen] = useState(false);
     const [isWarmuping, setIsWarmuping] = useState(false);
     const [refreshingIds, setRefreshingIds] = useState<Set<string>>(new Set());
+
+    // 多实例切换支持
+    const [instanceSelectOpen, setInstanceSelectOpen] = useState(false);
+    const [pendingSwitchAccountId, setPendingSwitchAccountId] = useState<string | null>(null);
+    const [dialogInstances, setDialogInstances] = useState<Instance[]>([]);
+    const [dialogInstanceStatuses, setDialogInstanceStatuses] = useState<Record<string, boolean>>({});
+
+    // 多实例支持：获取实例列表并构建账号到实例名称的映射
+    const [instances, setInstances] = useState<Instance[]>([]);
+
+    useEffect(() => {
+        const fetchInstances = async () => {
+            try {
+                const data = await listInstances();
+                setInstances(data);
+            } catch (error) {
+                console.error('Failed to fetch instances:', error);
+            }
+        };
+        fetchInstances();
+    }, []);
+
+    // 构建账号ID到实例名称的映射（基于 current_account_id，表示"正在使用"）
+    const accountInstanceMap = useMemo(() => {
+        const map = new Map<string, string>();
+        for (const instance of instances) {
+            // 只显示当前正在使用的账号，而非绑定的所有账号
+            if (instance.current_account_id) {
+                map.set(instance.current_account_id, instance.name);
+            }
+        }
+        return map;
+    }, [instances]);
 
 
     const handleWarmup = async (accountId: string) => {
@@ -273,16 +309,67 @@ function Accounts() {
     const handleSwitch = async (accountId: string) => {
         if (loading || switchingAccountId) return;
 
-        setSwitchingAccountId(accountId);
         console.log('[Accounts] handleSwitch called for:', accountId);
+
         try {
-            await switchAccount(accountId);
-            showToast(t('common.success'), 'success');
+            // 获取所有实例
+            const allInstances = await listInstances();
+
+            if (allInstances.length === 0) {
+                // 没有实例，使用原有逻辑
+                setSwitchingAccountId(accountId);
+                await switchAccount(accountId);
+                showToast(t('common.success'), 'success');
+                return;
+            }
+
+            if (allInstances.length === 1) {
+                // 只有一个实例，直接在该实例中切换
+                setSwitchingAccountId(accountId);
+                await switchAccountInInstance(allInstances[0].id, accountId);
+                showToast(t('common.success'), 'success');
+            } else {
+                // 多个实例，获取运行状态并弹出选择对话框
+                const statuses: Record<string, boolean> = {};
+                for (const inst of allInstances) {
+                    try {
+                        statuses[inst.id] = await getInstanceStatus(inst.id);
+                    } catch {
+                        statuses[inst.id] = false;
+                    }
+                }
+
+                setDialogInstances(allInstances);
+                setDialogInstanceStatuses(statuses);
+                setPendingSwitchAccountId(accountId);
+                setInstanceSelectOpen(true);
+                return; // 不设置 switchingAccountId，等用户选择
+            }
         } catch (error) {
             console.error('[Accounts] Switch failed:', error);
             showToast(`${t('common.error')}: ${error}`, 'error');
         } finally {
-            // Add a small delay for smoother UX
+            setTimeout(() => {
+                setSwitchingAccountId(null);
+            }, 500);
+        }
+    };
+
+    // 处理实例选择对话框确认
+    const handleInstanceSelectConfirm = async (instanceId: string) => {
+        if (!pendingSwitchAccountId) return;
+
+        setInstanceSelectOpen(false);
+        setSwitchingAccountId(pendingSwitchAccountId);
+
+        try {
+            await switchAccountInInstance(instanceId, pendingSwitchAccountId);
+            showToast(t('common.success'), 'success');
+        } catch (error) {
+            console.error('[Accounts] Switch in instance failed:', error);
+            showToast(`${t('common.error')}: ${error}`, 'error');
+        } finally {
+            setPendingSwitchAccountId(null);
             setTimeout(() => {
                 setSwitchingAccountId(null);
             }, 500);
@@ -827,6 +914,7 @@ function Accounts() {
                                 onToggleProxy={(id) => handleToggleProxy(id, !!accounts.find(a => a.id === id)?.proxy_disabled)}
                                 onReorder={reorderAccounts}
                                 onWarmup={handleWarmup}
+                                accountInstanceMap={accountInstanceMap}
                             />
                         </div>
                     </div>
@@ -847,6 +935,7 @@ function Accounts() {
                             onDelete={handleDelete}
                             onToggleProxy={(id) => handleToggleProxy(id, !!accounts.find(a => a.id === id)?.proxy_disabled)}
                             onWarmup={handleWarmup}
+                            accountInstanceMap={accountInstanceMap}
                         />
                     </div>
                 )}
@@ -931,6 +1020,19 @@ function Accounts() {
                 isDestructive={false}
                 onConfirm={handleWarmupAll}
                 onCancel={() => setIsWarmupConfirmOpen(false)}
+            />
+
+            {/* 多实例选择对话框 */}
+            <InstanceSelectDialog
+                isOpen={instanceSelectOpen}
+                instances={dialogInstances}
+                instanceStatuses={dialogInstanceStatuses}
+                accountEmail={pendingSwitchAccountId ? accounts.find(a => a.id === pendingSwitchAccountId)?.email || '' : ''}
+                onSelect={(instanceId) => handleInstanceSelectConfirm(instanceId)}
+                onClose={() => {
+                    setInstanceSelectOpen(false);
+                    setPendingSwitchAccountId(null);
+                }}
             />
         </div >
     );

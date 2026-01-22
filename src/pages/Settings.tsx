@@ -9,6 +9,7 @@ import { showToast } from '../components/common/ToastContainer';
 import QuotaProtection from '../components/settings/QuotaProtection';
 import SmartWarmup from '../components/settings/SmartWarmup';
 import PinnedQuotaModels from '../components/settings/PinnedQuotaModels';
+import InstanceManager from '../components/settings/InstanceManager';
 
 import { useTranslation } from 'react-i18next';
 
@@ -16,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 function Settings() {
     const { t } = useTranslation();
     const { config, loadConfig, saveConfig } = useConfigStore();
-    const [activeTab, setActiveTab] = useState<'general' | 'account' | 'proxy' | 'advanced' | 'about'>('general');
+    const [activeTab, setActiveTab] = useState<'general' | 'account' | 'proxy' | 'instances' | 'advanced' | 'about'>('general');
     const [formData, setFormData] = useState<AppConfig>({
         language: 'zh',
         theme: 'system',
@@ -158,31 +159,6 @@ function Settings() {
         }
     };
 
-    const handleSelectAntigravityPath = async () => {
-        try {
-            const selected = await open({
-                directory: false,
-                multiple: false,
-                title: t('settings.advanced.antigravity_path_select'),
-            });
-            if (selected && typeof selected === 'string') {
-                setFormData({ ...formData, antigravity_executable: selected });
-            }
-        } catch (error) {
-            showToast(`${t('common.error')}: ${error}`, 'error');
-        }
-    };
-
-
-    const handleDetectAntigravityPath = async () => {
-        try {
-            const path = await invoke<string>('get_antigravity_path', { bypassConfig: true });
-            setFormData({ ...formData, antigravity_executable: path });
-            showToast(t('settings.advanced.antigravity_path_detected'), 'success');
-        } catch (error) {
-            showToast(`${t('common.error')}: ${error}`, 'error');
-        }
-    };
 
     const handleCheckUpdate = async () => {
         setIsCheckingUpdate(true);
@@ -247,6 +223,15 @@ function Settings() {
                             onClick={() => setActiveTab('proxy')}
                         >
                             {t('settings.tabs.proxy')}
+                        </button>
+                        <button
+                            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'instances'
+                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                }`}
+                            onClick={() => setActiveTab('instances')}
+                        >
+                            {t('settings.tabs.instances')}
                         </button>
                         <button
                             className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'advanced'
@@ -513,6 +498,11 @@ function Settings() {
                         </div>
                     )}
 
+                    {/* 实例管理 */}
+                    {activeTab === 'instances' && (
+                        <InstanceManager />
+                    )}
+
                     {/* 高级设置 */}
                     {activeTab === 'advanced' && (
                         <div className="space-y-4">
@@ -566,80 +556,7 @@ function Settings() {
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{t('settings.advanced.data_dir_desc')}</p>
                             </div>
 
-                            {/* 反重力程序路径 */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-900 dark:text-base-content mb-1">
-                                    {t('settings.advanced.antigravity_path')}
-                                </label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        className="flex-1 px-4 py-4 border border-gray-200 dark:border-base-300 rounded-lg bg-gray-50 dark:bg-base-200 text-gray-900 dark:text-base-content font-medium"
-                                        value={formData.antigravity_executable || ''}
-                                        placeholder={t('settings.advanced.antigravity_path_placeholder')}
-                                        onChange={(e) => setFormData({ ...formData, antigravity_executable: e.target.value })}
-                                    />
-                                    {formData.antigravity_executable && (
-                                        <button
-                                            className="px-4 py-2 border border-gray-200 dark:border-base-300 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
-                                            onClick={() => setFormData({ ...formData, antigravity_executable: undefined })}
-                                        >
-                                            {t('common.clear')}
-                                        </button>
-                                    )}
-                                    <button
-                                        className="px-4 py-2 border border-gray-200 dark:border-base-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-base-200 transition-colors"
-                                        onClick={handleDetectAntigravityPath}
-                                    >
-                                        {t('settings.advanced.detect_btn')}
-                                    </button>
-                                    <button
-                                        className="px-4 py-2 border border-gray-200 dark:border-base-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-base-200 transition-colors"
-                                        onClick={handleSelectAntigravityPath}
-                                    >
-                                        {t('settings.advanced.select_btn')}
-                                    </button>
-                                </div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                    {t('settings.advanced.antigravity_path_desc')}
-                                </p>
-                            </div>
-
-                            {/* 反重力程序启动参数 */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-900 dark:text-base-content mb-1">
-                                    {t('settings.advanced.antigravity_args')}
-                                </label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        className="flex-1 px-4 py-4 border border-gray-200 dark:border-base-300 rounded-lg bg-gray-50 dark:bg-base-200 text-gray-900 dark:text-base-content font-medium"
-                                        value={formData.antigravity_args ? formData.antigravity_args.join(' ') : ''}
-                                        placeholder={t('settings.advanced.antigravity_args_placeholder')}
-                                        onChange={(e) => {
-                                            const args = e.target.value.trim() === '' ? [] : e.target.value.split(' ').map(arg => arg.trim()).filter(arg => arg !== '');
-                                            setFormData({ ...formData, antigravity_args: args });
-                                        }}
-                                    />
-                                    <button
-                                        className="px-4 py-2 border border-gray-200 dark:border-base-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-base-200 transition-colors"
-                                        onClick={async () => {
-                                            try {
-                                                const args = await invoke<string[]>('get_antigravity_args');
-                                                setFormData({ ...formData, antigravity_args: args });
-                                                showToast(t('settings.advanced.antigravity_args_detected'), 'success');
-                                            } catch (error) {
-                                                showToast(`${t('settings.advanced.antigravity_args_detect_error')}: ${error}`, 'error');
-                                            }
-                                        }}
-                                    >
-                                        {t('settings.advanced.detect_args_btn')}
-                                    </button>
-                                </div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                    {t('settings.advanced.antigravity_args_desc')}
-                                </p>
-                            </div>
+                            {/* 移至实例管理中配置 */}
 
                             {/* HTTP API 设置 */}
                             <div className="border-t border-gray-200 dark:border-base-200 pt-4">

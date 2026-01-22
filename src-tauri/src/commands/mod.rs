@@ -1,7 +1,7 @@
-use crate::models::{Account, AppConfig, QuotaData, TokenData};
+use crate::models::{Account, AppConfig, Instance, QuotaData, TokenData};
 use crate::modules;
-use tauri_plugin_opener::OpenerExt;
 use tauri::{Emitter, Manager};
+use tauri_plugin_opener::OpenerExt;
 
 // 导出 proxy 命令
 pub mod proxy;
@@ -96,7 +96,10 @@ pub async fn delete_accounts(
 /// 根据传入的账号ID数组顺序更新账号排列
 #[tauri::command]
 pub async fn reorder_accounts(account_ids: Vec<String>) -> Result<(), String> {
-    modules::logger::log_info(&format!("收到账号重排序请求，共 {} 个账号", account_ids.len()));
+    modules::logger::log_info(&format!(
+        "收到账号重排序请求，共 {} 个账号",
+        account_ids.len()
+    ));
     modules::account::reorder_accounts(&account_ids).map_err(|e| {
         modules::logger::log_error(&format!("账号重排序失败: {}", e));
         e
@@ -290,7 +293,6 @@ pub async fn open_device_folder(app: tauri::AppHandle) -> Result<(), String> {
         .map_err(|e| format!("打开目录失败: {}", e))
 }
 
-
 /// 加载配置
 #[tauri::command]
 pub async fn load_config() -> Result<AppConfig, String> {
@@ -324,7 +326,10 @@ pub async fn save_config(
         // 更新 z.ai 配置
         instance.axum_server.update_zai(&config.proxy).await;
         // 更新实验性配置
-        instance.axum_server.update_experimental(&config.proxy).await;
+        instance
+            .axum_server
+            .update_experimental(&config.proxy)
+            .await;
         tracing::debug!("已同步热更新反代服务配置");
     }
 
@@ -667,7 +672,9 @@ pub async fn check_for_updates() -> Result<UpdateInfo, String> {
 #[tauri::command]
 pub async fn should_check_updates() -> Result<bool, String> {
     let settings = crate::modules::update_checker::load_update_settings()?;
-    Ok(crate::modules::update_checker::should_check_for_updates(&settings))
+    Ok(crate::modules::update_checker::should_check_for_updates(
+        &settings,
+    ))
 }
 
 #[tauri::command]
@@ -675,10 +682,10 @@ pub async fn update_last_check_time() -> Result<(), String> {
     crate::modules::update_checker::update_last_check_time()
 }
 
-
 /// 获取更新设置
 #[tauri::command]
-pub async fn get_update_settings() -> Result<crate::modules::update_checker::UpdateSettings, String> {
+pub async fn get_update_settings() -> Result<crate::modules::update_checker::UpdateSettings, String>
+{
     crate::modules::update_checker::load_update_settings()
 }
 
@@ -689,8 +696,6 @@ pub async fn save_update_settings(
 ) -> Result<(), String> {
     crate::modules::update_checker::save_update_settings(&settings)
 }
-
-
 
 /// 切换账号的反代禁用状态
 #[tauri::command]
@@ -709,17 +714,19 @@ pub async fn toggle_proxy_status(
 
     // 1. 读取账号文件
     let data_dir = modules::account::get_data_dir()?;
-    let account_path = data_dir.join("accounts").join(format!("{}.json", account_id));
+    let account_path = data_dir
+        .join("accounts")
+        .join(format!("{}.json", account_id));
 
     if !account_path.exists() {
         return Err(format!("账号文件不存在: {}", account_id));
     }
 
-    let content = std::fs::read_to_string(&account_path)
-        .map_err(|e| format!("读取账号文件失败: {}", e))?;
+    let content =
+        std::fs::read_to_string(&account_path).map_err(|e| format!("读取账号文件失败: {}", e))?;
 
-    let mut account_json: serde_json::Value = serde_json::from_str(&content)
-        .map_err(|e| format!("解析账号文件失败: {}", e))?;
+    let mut account_json: serde_json::Value =
+        serde_json::from_str(&content).map_err(|e| format!("解析账号文件失败: {}", e))?;
 
     // 2. 更新 proxy_disabled 字段
     if enable {
@@ -732,14 +739,16 @@ pub async fn toggle_proxy_status(
         let now = chrono::Utc::now().timestamp();
         account_json["proxy_disabled"] = serde_json::Value::Bool(true);
         account_json["proxy_disabled_at"] = serde_json::Value::Number(now.into());
-        account_json["proxy_disabled_reason"] = serde_json::Value::String(
-            reason.unwrap_or_else(|| "用户手动禁用".to_string())
-        );
+        account_json["proxy_disabled_reason"] =
+            serde_json::Value::String(reason.unwrap_or_else(|| "用户手动禁用".to_string()));
     }
 
     // 3. 保存到磁盘
-    std::fs::write(&account_path, serde_json::to_string_pretty(&account_json).unwrap())
-        .map_err(|e| format!("写入账号文件失败: {}", e))?;
+    std::fs::write(
+        &account_path,
+        serde_json::to_string_pretty(&account_json).unwrap(),
+    )
+    .map_err(|e| format!("写入账号文件失败: {}", e))?;
 
     modules::logger::log_info(&format!(
         "账号反代状态已更新: {} ({})",
@@ -790,9 +799,7 @@ pub async fn save_http_api_settings(
 // Token Statistics Commands
 // ============================================================================
 
-pub use crate::modules::token_stats::{
-    TokenStatsAggregated, AccountTokenStats, TokenStatsSummary
-};
+pub use crate::modules::token_stats::{AccountTokenStats, TokenStatsAggregated, TokenStatsSummary};
 
 #[tauri::command]
 pub async fn get_token_stats_hourly(hours: i64) -> Result<Vec<TokenStatsAggregated>, String> {
@@ -820,26 +827,200 @@ pub async fn get_token_stats_summary(hours: i64) -> Result<TokenStatsSummary, St
 }
 
 #[tauri::command]
-pub async fn get_token_stats_by_model(hours: i64) -> Result<Vec<crate::modules::token_stats::ModelTokenStats>, String> {
+pub async fn get_token_stats_by_model(
+    hours: i64,
+) -> Result<Vec<crate::modules::token_stats::ModelTokenStats>, String> {
     crate::modules::token_stats::get_model_stats(hours)
 }
 
 #[tauri::command]
-pub async fn get_token_stats_model_trend_hourly(hours: i64) -> Result<Vec<crate::modules::token_stats::ModelTrendPoint>, String> {
+pub async fn get_token_stats_model_trend_hourly(
+    hours: i64,
+) -> Result<Vec<crate::modules::token_stats::ModelTrendPoint>, String> {
     crate::modules::token_stats::get_model_trend_hourly(hours)
 }
 
 #[tauri::command]
-pub async fn get_token_stats_model_trend_daily(days: i64) -> Result<Vec<crate::modules::token_stats::ModelTrendPoint>, String> {
+pub async fn get_token_stats_model_trend_daily(
+    days: i64,
+) -> Result<Vec<crate::modules::token_stats::ModelTrendPoint>, String> {
     crate::modules::token_stats::get_model_trend_daily(days)
 }
 
 #[tauri::command]
-pub async fn get_token_stats_account_trend_hourly(hours: i64) -> Result<Vec<crate::modules::token_stats::AccountTrendPoint>, String> {
+pub async fn get_token_stats_account_trend_hourly(
+    hours: i64,
+) -> Result<Vec<crate::modules::token_stats::AccountTrendPoint>, String> {
     crate::modules::token_stats::get_account_trend_hourly(hours)
 }
 
 #[tauri::command]
-pub async fn get_token_stats_account_trend_daily(days: i64) -> Result<Vec<crate::modules::token_stats::AccountTrendPoint>, String> {
+pub async fn get_token_stats_account_trend_daily(
+    days: i64,
+) -> Result<Vec<crate::modules::token_stats::AccountTrendPoint>, String> {
     crate::modules::token_stats::get_account_trend_daily(days)
+}
+
+// ============================================================================
+// Instance Management Commands (多实例支持)
+// ============================================================================
+
+/// 列出所有实例
+#[tauri::command]
+pub async fn list_instances() -> Result<Vec<Instance>, String> {
+    modules::instance::list_instances()
+}
+
+/// 创建新实例
+#[tauri::command]
+pub async fn create_instance(
+    name: String,
+    user_data_dir: String,
+    extra_args: Option<Vec<String>>,
+) -> Result<Instance, String> {
+    let path = std::path::PathBuf::from(user_data_dir);
+    modules::instance::create_instance(name, path, extra_args.unwrap_or_default())
+}
+
+/// 获取实例详情
+#[tauri::command]
+pub async fn get_instance(instance_id: String) -> Result<Instance, String> {
+    modules::instance::load_instance(&instance_id)
+}
+
+/// 删除实例
+#[tauri::command]
+pub async fn delete_instance(instance_id: String) -> Result<(), String> {
+    modules::instance::delete_instance(&instance_id)
+}
+
+/// 更新实例
+#[tauri::command]
+pub async fn update_instance(instance: Instance) -> Result<(), String> {
+    modules::instance::update_instance(&instance)
+}
+
+/// 绑定账号到实例
+#[tauri::command]
+pub async fn bind_account_to_instance(
+    account_id: String,
+    instance_id: String,
+) -> Result<(), String> {
+    modules::instance::bind_account_to_instance(&account_id, &instance_id)
+}
+
+/// 解绑账号从实例
+#[tauri::command]
+pub async fn unbind_account_from_instance(
+    account_id: String,
+    instance_id: String,
+) -> Result<(), String> {
+    modules::instance::unbind_account_from_instance(&account_id, &instance_id)
+}
+
+/// 启动指定实例
+#[tauri::command]
+pub async fn start_instance(instance_id: String) -> Result<(), String> {
+    let instance = modules::instance::load_instance(&instance_id)?;
+
+    // 如果有保存的启动参数，使用它们；否则使用默认参数
+    if let Some(ref saved_args) = instance.last_launch_args {
+        if !saved_args.is_empty() {
+            modules::logger::log_info(&format!(
+                "Starting instance {} with saved args: {:?}",
+                instance.name, saved_args
+            ));
+            return modules::process::start_instance_with_args(&instance, saved_args.clone());
+        }
+    }
+
+    modules::process::start_instance(&instance)
+}
+
+/// 停止指定实例
+#[tauri::command]
+pub async fn stop_instance(instance_id: String) -> Result<(), String> {
+    let mut instance = modules::instance::load_instance(&instance_id)?;
+
+    // 在停止前保存主进程的命令行参数（跳过第一个参数，即可执行文件路径）
+    if let Some(args) = modules::process::get_instance_root_process_args(&instance.user_data_dir) {
+        // 跳过第一个参数（可执行文件路径），只保存实际的启动参数
+        let args_without_exe: Vec<String> = args.into_iter().skip(1).collect();
+        if !args_without_exe.is_empty() {
+            modules::logger::log_info(&format!(
+                "Saving launch args for instance {}: {:?}",
+                instance.name, args_without_exe
+            ));
+            instance.last_launch_args = Some(args_without_exe);
+            let _ = modules::instance::save_instance(&instance);
+        }
+    }
+
+    modules::process::close_instance(&instance.user_data_dir, 20)
+}
+
+/// 获取实例运行状态
+#[tauri::command]
+pub async fn get_instance_status(instance_id: String) -> Result<bool, String> {
+    let instance = modules::instance::load_instance(&instance_id)?;
+
+    // 默认实例没有 --user-data-dir 参数，需要使用专门的检测方法
+    if instance.is_default {
+        Ok(modules::process::is_default_instance_running())
+    } else {
+        Ok(modules::process::is_instance_running(
+            &instance.user_data_dir,
+        ))
+    }
+}
+
+/// 获取默认实例（如果不存在则创建）
+#[tauri::command]
+pub async fn ensure_default_instance() -> Result<Instance, String> {
+    modules::instance::ensure_default_instance()
+}
+
+/// 迁移现有账号到默认实例
+#[tauri::command]
+pub async fn migrate_accounts_to_default_instance() -> Result<(), String> {
+    modules::instance::migrate_accounts_to_default_instance()
+}
+
+/// 获取账号所属的实例列表
+#[tauri::command]
+pub async fn get_instances_for_account(account_id: String) -> Result<Vec<Instance>, String> {
+    modules::instance::get_instances_for_account(&account_id)
+}
+
+/// 设置实例的当前账号
+#[tauri::command]
+pub async fn set_current_account_for_instance(
+    instance_id: String,
+    account_id: String,
+) -> Result<(), String> {
+    modules::instance::set_current_account_for_instance(&instance_id, &account_id)
+}
+
+/// 在指定实例中切换账号
+#[tauri::command]
+pub async fn switch_account_in_instance(
+    instance_id: String,
+    account_id: String,
+) -> Result<(), String> {
+    // 加载实例配置
+    let mut instance = modules::instance::load_instance(&instance_id)?;
+
+    // 更新实例的 current_account_id
+    instance.current_account_id = Some(account_id.clone());
+    modules::instance::save_instance(&instance)?;
+
+    // 使用新的 switch_account_for_instance 函数执行实际切换
+    // 如果实例正在运行，会自动停止 -> 切换账号 -> 重启
+    modules::account::switch_account_for_instance(&account_id, &instance, true).await
+}
+
+/// 获取所有运行中的实例
+#[tauri::command]
+pub async fn get_running_instances() -> Result<Vec<Instance>, String> {
+    modules::instance::get_running_instances()
 }

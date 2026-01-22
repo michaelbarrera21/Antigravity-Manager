@@ -1,10 +1,11 @@
 pub mod account;
-pub mod token;
-pub mod quota;
 pub mod config;
+pub mod instance;
+pub mod quota;
+pub mod token;
 
 pub use account::{Account, AccountIndex, AccountSummary, DeviceProfile, DeviceProfileVersion};
-pub use token::TokenData;
-pub use quota::QuotaData;
 pub use config::{AppConfig, QuotaProtectionConfig};
-
+pub use instance::{Instance, InstanceIndex, InstanceSummary};
+pub use quota::QuotaData;
+pub use token::TokenData;

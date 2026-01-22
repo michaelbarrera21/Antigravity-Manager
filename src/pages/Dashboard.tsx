@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Users, Sparkles, Bot, AlertTriangle, ArrowRight, Download, RefreshCw } from 'lucide-react';
 import { useAccountStore } from '../stores/useAccountStore';
-import CurrentAccount from '../components/dashboard/CurrentAccount';
-import BestAccounts from '../components/dashboard/BestAccounts';
+import InstanceAccounts from '../components/dashboard/InstanceAccounts';
+import BestAccountsCompact from '../components/dashboard/BestAccountsCompact';
 import AddAccountDialog from '../components/accounts/AddAccountDialog';
 import { save } from '@tauri-apps/plugin-dialog';
 import { request as invoke } from '../utils/request';
@@ -248,18 +248,20 @@ function Dashboard() {
                     </div>
                 </div>
 
-                {/* 双栏布局 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <CurrentAccount
-                        account={currentAccount}
-                        onSwitch={() => navigate('/accounts')}
-                    />
-                    <BestAccounts
-                        accounts={accounts}
-                        currentAccountId={currentAccount?.id}
-                        onSwitch={handleSwitch}
-                    />
-                </div>
+                {/* 实例账号区域 - 全宽显示 */}
+                <InstanceAccounts
+                    accounts={accounts}
+                    onRefresh={async (accountId) => {
+                        await refreshQuota(accountId);
+                    }}
+                />
+
+                {/* 最佳账号推荐 - 压缩单行 */}
+                <BestAccountsCompact
+                    accounts={accounts}
+                    currentAccountId={currentAccount?.id}
+                    onSwitch={handleSwitch}
+                />
 
                 {/* 快速链接 */}
                 <div className="grid grid-cols-2 gap-3">

@@ -14,6 +14,7 @@ function Navbar() {
     const navItems = [
         { path: '/', label: t('nav.dashboard') },
         { path: '/accounts', label: t('nav.accounts') },
+        { path: '/instances', label: t('nav.instances') },
         { path: '/api-proxy', label: t('nav.proxy') },
         { path: '/monitor', label: t('nav.call_records') },
         { path: '/token-stats', label: t('nav.token_stats', 'Token 统计') },

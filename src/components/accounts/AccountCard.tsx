@@ -1,4 +1,4 @@
-import { ArrowRightLeft, RefreshCw, Trash2, Download, Info, Lock, Ban, Diamond, Gem, Circle, Clock, ToggleLeft, ToggleRight, Fingerprint, Sparkles } from 'lucide-react';
+import { ArrowRightLeft, RefreshCw, Trash2, Download, Info, Lock, Ban, Diamond, Gem, Circle, Clock, ToggleLeft, ToggleRight, Fingerprint, Sparkles, Layers } from 'lucide-react';
 import { Account } from '../../types/account';
 import { getQuotaColor, formatTimeRemaining, getTimeRemainingColor } from '../../utils/format';
 import { cn } from '../../utils/cn';
@@ -19,10 +19,12 @@ interface AccountCardProps {
     onDelete: () => void;
     onToggleProxy: () => void;
     onWarmup?: () => void;
+    // 多实例支持
+    instanceName?: string;
 }
 
 
-function AccountCard({ account, selected, onSelect, isCurrent, isRefreshing, isSwitching = false, onSwitch, onRefresh, onViewDetails, onExport, onDelete, onToggleProxy, onViewDevice, onWarmup }: AccountCardProps) {
+function AccountCard({ account, selected, onSelect, isCurrent, isRefreshing, isSwitching = false, onSwitch, onRefresh, onViewDetails, onExport, onDelete, onToggleProxy, onViewDevice, onWarmup, instanceName }: AccountCardProps) {
     const { t } = useTranslation();
     const geminiProModel = account.quota?.models.find(m => m.name === 'gemini-3-pro-high');
     const geminiFlashModel = account.quota?.models.find(m => m.name === 'gemini-3-flash');
@@ -76,11 +78,7 @@ function AccountCard({ account, selected, onSelect, isCurrent, isRefreshing, isS
                             {account.email}
                         </h3>
                         <div className="flex items-center gap-1.5 shrink-0">
-                            {isCurrent && (
-                                <span className="px-1.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[9px] font-bold shadow-sm border border-blue-200/50">
-                                    {t('accounts.current').toUpperCase()}
-                                </span>
-                            )}
+                            {/* 当前标签已移除，改为只显示实例徽章 */}
                             {isDisabled && (
                                 <span
                                     className="px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-[9px] font-bold flex items-center gap-1 shadow-sm border border-rose-200/50"
@@ -122,6 +120,13 @@ function AccountCard({ account, selected, onSelect, isCurrent, isRefreshing, isS
                                     );
                                 }
                             })()}
+                            {/* 实例名称徽章 */}
+                            {instanceName && (
+                                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-[9px] font-bold shadow-sm border border-purple-200/50 dark:border-purple-700/30">
+                                    <Layers className="w-2.5 h-2.5" />
+                                    {instanceName}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>

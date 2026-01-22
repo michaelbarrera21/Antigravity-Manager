@@ -1,13 +1,13 @@
+mod commands;
+pub mod error;
 mod models;
 mod modules;
-mod commands;
+mod proxy; // Proxy service module
 mod utils;
-mod proxy;  // Proxy service module
-pub mod error;
 
-use tauri::Manager;
 use modules::logger;
-use tracing::{info, warn, error};
+use tauri::Manager;
+use tracing::{error, info, warn};
 
 /// Increase file descriptor limit for macOS to prevent "Too many open files" errors
 #[cfg(target_os = "macos")]
@@ -17,10 +17,13 @@ fn increase_nofile_limit() {
             rlim_cur: 0,
             rlim_max: 0,
         };
-        
+
         if libc::getrlimit(libc::RLIMIT_NOFILE, &mut rl) == 0 {
-            info!("Current open file limit: soft={}, hard={}", rl.rlim_cur, rl.rlim_max);
-            
+            info!(
+                "Current open file limit: soft={}, hard={}",
+                rl.rlim_cur, rl.rlim_max
+            );
+
             // Attempt to increase to 4096 or maximum hard limit
             let target = 4096.min(rl.rlim_max);
             if rl.rlim_cur < target {
@@ -54,7 +57,7 @@ pub fn run() {
     if let Err(e) = modules::token_stats::init_db() {
         error!("Failed to initialize token stats database: {}", e);
     }
-    
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -66,13 +69,13 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            let _ = app.get_webview_window("main")
-                .map(|window| {
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                    #[cfg(target_os = "macos")]
-                    app.set_activation_policy(tauri::ActivationPolicy::Regular).unwrap_or(());
-                });
+            let _ = app.get_webview_window("main").map(|window| {
+                let _ = window.show();
+                let _ = window.set_focus();
+                #[cfg(target_os = "macos")]
+                app.set_activation_policy(tauri::ActivationPolicy::Regular)
+                    .unwrap_or(());
+            });
         }))
         .manage(commands::proxy::ProxyServiceState::new())
         .setup(|app| {
@@ -102,7 +105,7 @@ pub fn run() {
 
             modules::tray::create_tray(app.handle())?;
             info!("Tray created");
-            
+
             // Auto-start proxy service
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
@@ -115,7 +118,9 @@ pub fn run() {
                             config.proxy,
                             state,
                             handle.clone(),
-                        ).await {
+                        )
+                        .await
+                        {
                             error!("Failed to auto-start proxy service: {}", e);
                         } else {
                             info!("Proxy service auto-started successfully");
@@ -123,10 +128,10 @@ pub fn run() {
                     }
                 }
             });
-            
+
             // Start smart scheduler
             modules::scheduler::start_scheduler(app.handle().clone());
-            
+
             // Start HTTP API server (for external calls, e.g. VS Code plugin)
             match modules::http_api::load_settings() {
                 Ok(settings) if settings.enabled => {
@@ -138,12 +143,18 @@ pub fn run() {
                 }
                 Err(e) => {
                     // Use default port if loading fails
-                    error!("Failed to load HTTP API settings: {}, using default port", e);
+                    error!(
+                        "Failed to load HTTP API settings: {}, using default port",
+                        e
+                    );
                     modules::http_api::spawn_server(modules::http_api::DEFAULT_PORT);
-                    info!("HTTP API server started on port {}", modules::http_api::DEFAULT_PORT);
+                    info!(
+                        "HTTP API server started on port {}",
+                        modules::http_api::DEFAULT_PORT
+                    );
                 }
             }
-            
+
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -152,7 +163,10 @@ pub fn run() {
                 #[cfg(target_os = "macos")]
                 {
                     use tauri::Manager;
-                    window.app_handle().set_activation_policy(tauri::ActivationPolicy::Accessory).unwrap_or(());
+                    window
+                        .app_handle()
+                        .set_activation_policy(tauri::ActivationPolicy::Accessory)
+                        .unwrap_or(());
                 }
                 api.prevent_close();
             }
@@ -255,6 +269,23 @@ pub fn run() {
             proxy::cli_sync::execute_cli_sync,
             proxy::cli_sync::execute_cli_restore,
             proxy::cli_sync::get_cli_config_content,
+            // Instance management commands (多实例支持)
+            commands::list_instances,
+            commands::create_instance,
+            commands::get_instance,
+            commands::delete_instance,
+            commands::update_instance,
+            commands::bind_account_to_instance,
+            commands::unbind_account_from_instance,
+            commands::start_instance,
+            commands::stop_instance,
+            commands::get_instance_status,
+            commands::ensure_default_instance,
+            commands::migrate_accounts_to_default_instance,
+            commands::get_instances_for_account,
+            commands::set_current_account_for_instance,
+            commands::switch_account_in_instance,
+            commands::get_running_instances,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
@@ -266,7 +297,9 @@ pub fn run() {
                     let _ = window.show();
                     let _ = window.unminimize();
                     let _ = window.set_focus();
-                    app_handle.set_activation_policy(tauri::ActivationPolicy::Regular).unwrap_or(());
+                    app_handle
+                        .set_activation_policy(tauri::ActivationPolicy::Regular)
+                        .unwrap_or(());
                 }
             }
             // Suppress unused variable warnings on non-macOS platforms

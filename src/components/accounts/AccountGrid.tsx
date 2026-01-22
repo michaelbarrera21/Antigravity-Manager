@@ -17,10 +17,12 @@ interface AccountGridProps {
     onDelete: (accountId: string) => void;
     onToggleProxy: (accountId: string) => void;
     onWarmup?: (accountId: string) => void;
+    // 多实例支持：账号ID到实例名称的映射
+    accountInstanceMap?: Map<string, string>;
 }
 
 
-function AccountGrid({ accounts, selectedIds, refreshingIds, onToggleSelect, currentAccountId, switchingAccountId, onSwitch, onRefresh, onViewDetails, onExport, onDelete, onToggleProxy, onViewDevice, onWarmup }: AccountGridProps) {
+function AccountGrid({ accounts, selectedIds, refreshingIds, onToggleSelect, currentAccountId, switchingAccountId, onSwitch, onRefresh, onViewDetails, onExport, onDelete, onToggleProxy, onViewDevice, onWarmup, accountInstanceMap }: AccountGridProps) {
     const { t } = useTranslation();
     if (accounts.length === 0) {
         return (
@@ -50,6 +52,7 @@ function AccountGrid({ accounts, selectedIds, refreshingIds, onToggleSelect, cur
                     onDelete={() => onDelete(account.id)}
                     onToggleProxy={() => onToggleProxy(account.id)}
                     onWarmup={onWarmup ? () => onWarmup(account.id) : undefined}
+                    instanceName={accountInstanceMap?.get(account.id)}
                 />
             ))}
         </div>
@@ -57,3 +60,4 @@ function AccountGrid({ accounts, selectedIds, refreshingIds, onToggleSelect, cur
 }
 
 export default AccountGrid;
+

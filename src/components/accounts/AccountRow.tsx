@@ -78,11 +78,7 @@ function AccountRow({ account, selected, onSelect, isCurrent, isRefreshing, isSw
                     </span>
 
                     <div className="flex items-center gap-1.5 shrink-0">
-                        {isCurrent && (
-                            <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[10px] font-bold shadow-sm border border-blue-200/50 dark:border-blue-800/50">
-                                {t('accounts.current').toUpperCase()}
-                            </span>
-                        )}
+                        {/* 当前标签已移除，改为只显示实例徽章 */}
 
                         {isDisabled && (
                             <span

@@ -115,10 +115,10 @@ pub fn backup_storage(storage_path: &Path) -> Result<PathBuf, String> {
 /// Read current device profile from storage.json
 #[allow(dead_code)]
 pub fn read_profile(storage_path: &Path) -> Result<DeviceProfile, String> {
-    let content =
-        fs::read_to_string(storage_path).map_err(|e| format!("read_failed ({:?}): {}", storage_path, e))?;
-    let json: Value =
-        serde_json::from_str(&content).map_err(|e| format!("parse_failed ({:?}): {}", storage_path, e))?;
+    let content = fs::read_to_string(storage_path)
+        .map_err(|e| format!("read_failed ({:?}): {}", storage_path, e))?;
+    let json: Value = serde_json::from_str(&content)
+        .map_err(|e| format!("parse_failed ({:?}): {}", storage_path, e))?;
 
     // Supports nested telemetry or flat telemetry.xxx
     let get_field = |key: &str| -> Option<String> {
@@ -150,8 +150,7 @@ pub fn write_profile(storage_path: &Path, profile: &DeviceProfile) -> Result<(),
         return Err(format!("storage_json_missing: {:?}", storage_path));
     }
 
-    let content =
-        fs::read_to_string(storage_path).map_err(|e| format!("read_failed: {}", e))?;
+    let content = fs::read_to_string(storage_path).map_err(|e| format!("read_failed: {}", e))?;
     let mut json: Value =
         serde_json::from_str(&content).map_err(|e| format!("parse_failed: {}", e))?;
 
@@ -210,9 +209,10 @@ pub fn write_profile(storage_path: &Path, profile: &DeviceProfile) -> Result<(),
         );
     }
 
-    let updated = serde_json::to_string_pretty(&json)
-        .map_err(|e| format!("serialize_failed: {}", e))?;
-    fs::write(storage_path, updated).map_err(|e| format!("write_failed ({:?}): {}", storage_path, e))?;
+    let updated =
+        serde_json::to_string_pretty(&json).map_err(|e| format!("serialize_failed: {}", e))?;
+    fs::write(storage_path, updated)
+        .map_err(|e| format!("write_failed ({:?}): {}", storage_path, e))?;
     logger::log_info(&format!("device_profile_written to {:?}", storage_path));
 
     // Sync ItemTable.storage.serviceMachineId in state.vscdb
@@ -223,8 +223,7 @@ pub fn write_profile(storage_path: &Path, profile: &DeviceProfile) -> Result<(),
 /// Only sync serviceMachineId, don't change other fields
 #[allow(dead_code)]
 pub fn sync_service_machine_id(storage_path: &Path, service_id: &str) -> Result<(), String> {
-    let content =
-        fs::read_to_string(storage_path).map_err(|e| format!("read_failed: {}", e))?;
+    let content = fs::read_to_string(storage_path).map_err(|e| format!("read_failed: {}", e))?;
     let mut json: Value =
         serde_json::from_str(&content).map_err(|e| format!("parse_failed: {}", e))?;
 
@@ -235,8 +234,8 @@ pub fn sync_service_machine_id(storage_path: &Path, service_id: &str) -> Result<
         );
     }
 
-    let updated = serde_json::to_string_pretty(&json)
-        .map_err(|e| format!("serialize_failed: {}", e))?;
+    let updated =
+        serde_json::to_string_pretty(&json).map_err(|e| format!("serialize_failed: {}", e))?;
     fs::write(storage_path, updated).map_err(|e| format!("write_failed: {}", e))?;
     logger::log_info("service_machine_id_synced");
 
@@ -251,7 +250,8 @@ pub fn sync_service_machine_id_from_storage(storage_path: &Path) -> Result<(), S
         return Err("storage_json_missing".to_string());
     }
     let content = fs::read_to_string(storage_path).map_err(|e| format!("read_failed: {}", e))?;
-    let mut json: Value = serde_json::from_str(&content).map_err(|e| format!("parse_failed: {}", e))?;
+    let mut json: Value =
+        serde_json::from_str(&content).map_err(|e| format!("parse_failed: {}", e))?;
 
     let service_id = json
         .get("storage.serviceMachineId")
@@ -277,13 +277,17 @@ pub fn sync_service_machine_id_from_storage(storage_path: &Path) -> Result<(), S
         .is_none()
     {
         if let Some(map) = json.as_object_mut() {
-            map.insert("storage.serviceMachineId".to_string(), Value::String(service_id.clone()));
+            map.insert(
+                "storage.serviceMachineId".to_string(),
+                Value::String(service_id.clone()),
+            );
             dirty = true;
         }
     }
 
     if dirty {
-        let updated = serde_json::to_string_pretty(&json).map_err(|e| format!("serialize_failed: {}", e))?;
+        let updated =
+            serde_json::to_string_pretty(&json).map_err(|e| format!("serialize_failed: {}", e))?;
         fs::write(storage_path, updated).map_err(|e| format!("write_failed: {}", e))?;
         logger::log_info("service_machine_id_added");
     }
@@ -294,10 +298,7 @@ pub fn sync_service_machine_id_from_storage(storage_path: &Path) -> Result<(), S
 fn sync_state_service_machine_id_value(service_id: &str) -> Result<(), String> {
     let db_path = get_state_db_path()?;
     if !db_path.exists() {
-        logger::log_warn(&format!(
-            "state_db_missing: {:?}",
-            db_path
-        ));
+        logger::log_warn(&format!("state_db_missing: {:?}", db_path));
         return Ok(());
     }
 
@@ -420,4 +421,44 @@ fn new_standard_machine_id() -> String {
         }
     }
     id
+}
+
+// ============================================================================
+// 实例级别 storage 路径函数
+// ============================================================================
+
+/// 获取特定实例的 storage.json 路径
+/// 直接根据 user_data_dir 计算路径
+pub fn get_storage_path_for_instance(user_data_dir: &Path) -> PathBuf {
+    user_data_dir
+        .join("User")
+        .join("globalStorage")
+        .join("storage.json")
+}
+
+/// 获取特定实例的 state.vscdb 路径
+pub fn get_state_db_path_for_instance(user_data_dir: &Path) -> PathBuf {
+    user_data_dir
+        .join("User")
+        .join("globalStorage")
+        .join("state.vscdb")
+}
+
+/// 检查实例的 storage.json 是否存在
+pub fn instance_storage_exists(user_data_dir: &Path) -> bool {
+    get_storage_path_for_instance(user_data_dir).exists()
+}
+
+/// 为实例初始化 user_data_dir 目录结构（如果不存在）
+pub fn ensure_instance_data_dir(user_data_dir: &Path) -> Result<(), String> {
+    let global_storage_dir = user_data_dir.join("User").join("globalStorage");
+    if !global_storage_dir.exists() {
+        std::fs::create_dir_all(&global_storage_dir)
+            .map_err(|e| format!("failed_to_create_instance_data_dir: {}", e))?;
+        logger::log_info(&format!(
+            "Created instance data directory: {:?}",
+            global_storage_dir
+        ));
+    }
+    Ok(())
 }

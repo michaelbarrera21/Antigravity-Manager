@@ -19,7 +19,10 @@ fn get_antigravity_path() -> Option<PathBuf> {
 pub fn get_db_path() -> Result<PathBuf, String> {
     // Prefer path specified by --user-data-dir argument
     if let Some(user_data_dir) = crate::modules::process::get_user_data_dir_from_process() {
-        let custom_db_path = user_data_dir.join("User").join("globalStorage").join("state.vscdb");
+        let custom_db_path = user_data_dir
+            .join("User")
+            .join("globalStorage")
+            .join("state.vscdb");
         if custom_db_path.exists() {
             return Ok(custom_db_path);
         }
@@ -50,8 +53,8 @@ pub fn get_db_path() -> Result<PathBuf, String> {
 
     #[cfg(target_os = "windows")]
     {
-        let appdata =
-            std::env::var("APPDATA").map_err(|_| "Failed to get APPDATA environment variable".to_string())?;
+        let appdata = std::env::var("APPDATA")
+            .map_err(|_| "Failed to get APPDATA environment variable".to_string())?;
         Ok(PathBuf::from(appdata).join("Antigravity\\User\\globalStorage\\state.vscdb"))
     }
 
@@ -111,5 +114,28 @@ pub fn inject_token(
     )
     .map_err(|e| format!("Failed to write Onboarding flag: {}", e))?;
 
-    Ok(format!("Token injection successful!\nDatabase: {:?}", db_path))
+    Ok(format!(
+        "Token injection successful!\nDatabase: {:?}",
+        db_path
+    ))
+}
+
+// ============================================================================
+// 实例级别数据库路径函数
+// ============================================================================
+
+use std::path::Path;
+
+/// 获取特定实例的数据库路径
+/// 直接根据 user_data_dir 计算路径
+pub fn get_db_path_for_instance(user_data_dir: &Path) -> PathBuf {
+    user_data_dir
+        .join("User")
+        .join("globalStorage")
+        .join("state.vscdb")
+}
+
+/// 检查实例的数据库是否存在
+pub fn instance_db_exists(user_data_dir: &Path) -> bool {
+    get_db_path_for_instance(user_data_dir).exists()
 }

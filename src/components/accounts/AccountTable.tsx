@@ -39,6 +39,7 @@ import {
     ToggleLeft,
     ToggleRight,
     Sparkles,
+    Layers,
 } from 'lucide-react';
 import { Account } from '../../types/account';
 import { useTranslation } from 'react-i18next';
@@ -68,6 +69,8 @@ interface AccountTableProps {
     onWarmup?: (accountId: string) => void;
     /** 拖拽排序回调，当用户完成拖拽时触发 */
     onReorder?: (accountIds: string[]) => void;
+    /** 多实例支持：账号ID到实例名称的映射 */
+    accountInstanceMap?: Map<string, string>;
 }
 
 interface SortableRowProps {
@@ -86,6 +89,7 @@ interface SortableRowProps {
     onDelete: () => void;
     onToggleProxy: () => void;
     onWarmup?: () => void;
+    instanceName?: string;
 }
 
 interface AccountRowContentProps {
@@ -101,6 +105,7 @@ interface AccountRowContentProps {
     onDelete: () => void;
     onToggleProxy: () => void;
     onWarmup?: () => void;
+    instanceName?: string;
 }
 
 // ============================================================================
@@ -209,6 +214,7 @@ function SortableAccountRow({
     onDelete,
     onToggleProxy,
     onWarmup,
+    instanceName,
 }: SortableRowProps) {
     const { t } = useTranslation();
     const {
@@ -272,6 +278,7 @@ function SortableAccountRow({
                 onDelete={onDelete}
                 onToggleProxy={onToggleProxy}
                 onWarmup={onWarmup}
+                instanceName={instanceName}
             />
         </tr>
     );
@@ -294,10 +301,11 @@ function AccountRowContent({
     onDelete,
     onToggleProxy,
     onWarmup,
+    instanceName,
 }: AccountRowContentProps) {
     const { t } = useTranslation();
     const { config } = useConfigStore();
-    
+
     // 模型配置映射：model_id -> { label, protectedKey }
     const MODEL_CONFIG: Record<string, { label: string; protectedKey: string }> = {
         'gemini-3-pro-high': { label: 'G3 Pro', protectedKey: 'gemini-pro' },
@@ -305,7 +313,7 @@ function AccountRowContent({
         'gemini-3-pro-image': { label: 'G3 Image', protectedKey: 'gemini-pro-image' },
         'claude-sonnet-4-5-thinking': { label: 'Claude 4.5', protectedKey: 'claude-sonnet' },
     };
-    
+
     // 获取要显示的模型列表
     const pinnedModels = config?.pinned_quota_models?.models || Object.keys(MODEL_CONFIG);
     const isDisabled = Boolean(account.disabled);
@@ -323,11 +331,7 @@ function AccountRowContent({
                     </span>
 
                     <div className="flex items-center gap-1.5 shrink-0">
-                        {isCurrent && (
-                            <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[10px] font-bold shadow-sm border border-blue-200/50 dark:border-blue-800/50">
-                                {t('accounts.current').toUpperCase()}
-                            </span>
-                        )}
+                        {/* 当前标签已移除，改为只显示实例徽章 */}
 
                         {isDisabled && (
                             <span
@@ -382,6 +386,14 @@ function AccountRowContent({
                                 );
                             }
                         })()}
+
+                        {/* 实例徽章 */}
+                        {instanceName && (
+                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-[10px] font-bold shadow-sm border border-purple-200/50 dark:border-purple-800/50">
+                                <Layers className="w-2.5 h-2.5" />
+                                {instanceName}
+                            </span>
+                        )}
                     </div>
                 </div>
             </td>
@@ -401,7 +413,7 @@ function AccountRowContent({
                         {pinnedModels.filter(modelId => MODEL_CONFIG[modelId]).map((modelId) => {
                             const modelConfig = MODEL_CONFIG[modelId];
                             const modelData = account.quota?.models.find(m => m.name.toLowerCase() === modelId);
-                            
+
                             return (
                                 <div key={modelId} className="relative h-[22px] flex items-center px-1.5 rounded-md overflow-hidden border border-gray-100/50 dark:border-white/5 bg-gray-50/30 dark:bg-white/5 group/quota">
                                     {modelData && (
@@ -563,6 +575,7 @@ function AccountTable({
     onDelete,
     onToggleProxy,
     onReorder,
+    accountInstanceMap,
 }: AccountTableProps) {
     const { t } = useTranslation();
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -654,6 +667,7 @@ function AccountTable({
                                     onExport={() => onExport(account.id)}
                                     onDelete={() => onDelete(account.id)}
                                     onToggleProxy={() => onToggleProxy(account.id)}
+                                    instanceName={accountInstanceMap?.get(account.id)}
                                 />
                             ))}
                         </tbody>
