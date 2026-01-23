@@ -82,11 +82,16 @@ impl Instance {
     }
 
     /// 获取完整的启动参数列表
+    /// 注意：默认实例不需要 --user-data-dir 参数
     pub fn get_launch_args(&self) -> Vec<String> {
-        let mut args = vec![
-            "--user-data-dir".to_string(),
-            self.user_data_dir.to_string_lossy().to_string(),
-        ];
+        let mut args = Vec::new();
+
+        // 只有非默认实例才需要 --user-data-dir 参数
+        if !self.is_default {
+            args.push("--user-data-dir".to_string());
+            args.push(self.user_data_dir.to_string_lossy().to_string());
+        }
+
         args.extend(self.extra_args.clone());
         args
     }

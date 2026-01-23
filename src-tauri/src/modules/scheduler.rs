@@ -1,15 +1,16 @@
+use crate::models::Account;
+use crate::modules::{account, config, logger, quota};
 use chrono::Utc;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
-use std::sync::Mutex;
-use tokio::time::{self, Duration};
-use tauri::Manager;
-use crate::modules::{config, logger, quota, account};
-use crate::models::Account;
 use std::path::PathBuf;
+use std::sync::Mutex;
+use tauri::Manager;
+use tokio::time::{self, Duration};
 
 // Warmup history: key = "email:model_name:100", value = warmup timestamp
-static WARMUP_HISTORY: Lazy<Mutex<HashMap<String, i64>>> = Lazy::new(|| Mutex::new(load_warmup_history()));
+static WARMUP_HISTORY: Lazy<Mutex<HashMap<String, i64>>> =
+    Lazy::new(|| Mutex::new(load_warmup_history()));
 
 fn get_warmup_history_path() -> Result<PathBuf, String> {
     let data_dir = account::get_data_dir()?;
@@ -18,12 +19,10 @@ fn get_warmup_history_path() -> Result<PathBuf, String> {
 
 fn load_warmup_history() -> HashMap<String, i64> {
     match get_warmup_history_path() {
-        Ok(path) if path.exists() => {
-            match std::fs::read_to_string(&path) {
-                Ok(content) => serde_json::from_str(&content).unwrap_or_default(),
-                Err(_) => HashMap::new(),
-            }
-        }
+        Ok(path) if path.exists() => match std::fs::read_to_string(&path) {
+            Ok(content) => serde_json::from_str(&content).unwrap_or_default(),
+            Err(_) => HashMap::new(),
+        },
         _ => HashMap::new(),
     }
 }
@@ -55,7 +54,7 @@ pub fn check_cooldown(key: &str, cooldown_seconds: i64) -> bool {
 pub fn start_scheduler(app_handle: tauri::AppHandle) {
     tauri::async_runtime::spawn(async move {
         logger::log_info("Smart Warmup Scheduler started. Monitoring quota at 100%...");
-        
+
         // Scan every 10 minutes
         let mut interval = time::interval(Duration::from_secs(600));
 
@@ -70,7 +69,7 @@ pub fn start_scheduler(app_handle: tauri::AppHandle) {
             if !app_config.scheduled_warmup.enabled {
                 continue;
             }
-            
+
             // Get all accounts (no longer filtering by level)
             let Ok(accounts) = account::list_accounts() else {
                 continue;
@@ -101,7 +100,9 @@ pub fn start_scheduler(app_handle: tauri::AppHandle) {
                 };
 
                 // Get fresh quota
-                let Ok((fresh_quota, _)) = quota::fetch_quota_with_cache(&token, &account.email, Some(&pid)).await else {
+                let Ok((fresh_quota, _)) =
+                    quota::fetch_quota_with_cache(&token, &account.email, Some(&pid)).await
+                else {
                     continue;
                 };
 
@@ -113,13 +114,17 @@ pub fn start_scheduler(app_handle: tauri::AppHandle) {
                         let model_to_ping = model.name.clone();
 
                         // Only warmup models configured by user (allowlist)
-                        if !app_config.scheduled_warmup.monitored_models.contains(&model_to_ping) {
+                        if !app_config
+                            .scheduled_warmup
+                            .monitored_models
+                            .contains(&model_to_ping)
+                        {
                             continue;
                         }
 
                         // Use mapped name as key
                         let history_key = format!("{}:{}:100", account.email, model_to_ping);
-                        
+
                         // Check cooldown: do not repeat warmup within 4 hours
                         {
                             let history = WARMUP_HISTORY.lock().unwrap();
@@ -149,7 +154,7 @@ pub fn start_scheduler(app_handle: tauri::AppHandle) {
                         // Quota not full, clear history, need to map name first
                         let model_to_ping = model.name.clone();
                         let history_key = format!("{}:{}:100", account.email, model_to_ping);
-                        
+
                         let mut history = WARMUP_HISTORY.lock().unwrap();
                         if history.remove(&history_key).is_some() {
                             save_warmup_history(&history);
@@ -181,11 +186,13 @@ pub fn start_scheduler(app_handle: tauri::AppHandle) {
                     let mut success = 0;
                     let batch_size = 3;
                     let now_ts = chrono::Utc::now().timestamp();
-                    
+
                     for (batch_idx, batch) in warmup_tasks.chunks(batch_size).enumerate() {
                         let mut handles = Vec::new();
-                        
-                        for (task_idx, (email, model, token, pid, pct, history_key)) in batch.iter().enumerate() {
+
+                        for (task_idx, (email, model, token, pid, pct, history_key)) in
+                            batch.iter().enumerate()
+                        {
                             let global_idx = batch_idx * batch_size + task_idx + 1;
                             let email = email.clone();
                             let model = model.clone();
@@ -193,19 +200,21 @@ pub fn start_scheduler(app_handle: tauri::AppHandle) {
                             let pid = pid.clone();
                             let pct = *pct;
                             let history_key = history_key.clone();
-                            
+
                             logger::log_info(&format!(
                                 "[Warmup {}/{}] {} @ {} ({}%)",
                                 global_idx, total, model, email, pct
                             ));
-                            
+
                             let handle = tokio::spawn(async move {
-                                let result = quota::warmup_model_directly(&token, &model, &pid, &email, pct).await;
+                                let result =
+                                    quota::warmup_model_directly(&token, &model, &pid, &email, pct)
+                                        .await;
                                 (result, history_key)
                             });
                             handles.push(handle);
                         }
-                        
+
                         for handle in handles {
                             match handle.await {
                                 Ok((true, history_key)) => {
@@ -215,7 +224,7 @@ pub fn start_scheduler(app_handle: tauri::AppHandle) {
                                 _ => {}
                             }
                         }
-                        
+
                         if batch_idx < (warmup_tasks.len() + batch_size - 1) / batch_size - 1 {
                             tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
                         }
@@ -228,7 +237,8 @@ pub fn start_scheduler(app_handle: tauri::AppHandle) {
 
                     // Refresh quota, sync to frontend
                     tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-                    let state = handle_for_warmup.state::<crate::commands::proxy::ProxyServiceState>();
+                    let state =
+                        handle_for_warmup.state::<crate::commands::proxy::ProxyServiceState>();
                     let _ = crate::commands::refresh_all_quotas(state).await;
                 });
             } else if skipped_cooldown > 0 {
@@ -237,7 +247,9 @@ pub fn start_scheduler(app_handle: tauri::AppHandle) {
                     skipped_cooldown
                 ));
             } else {
-                logger::log_info("[Scheduler] Scan completed, no models with 100% quota need warmup");
+                logger::log_info(
+                    "[Scheduler] Scan completed, no models with 100% quota need warmup",
+                );
             }
 
             // Refresh frontend display after scan (ensure UI has latest data)
@@ -258,6 +270,141 @@ pub fn start_scheduler(app_handle: tauri::AppHandle) {
             }
         }
     });
+
+    // ============== 实例状态刷新后台任务 ==============
+    // 定期刷新所有实例的运行状态和启动参数
+    tauri::async_runtime::spawn(async move {
+        logger::log_info("[Instance Monitor] Background instance status refresh started");
+
+        // 每 5 秒刷新一次实例状态
+        let mut interval = time::interval(Duration::from_secs(5));
+
+        loop {
+            interval.tick().await;
+
+            // 获取所有实例
+            let instances = match crate::modules::instance::list_instances() {
+                Ok(list) => list,
+                Err(_) => continue,
+            };
+
+            for mut instance in instances {
+                let cached_pid = instance.last_root_pid;
+
+                // 检测实例运行状态
+                let (is_running, new_pid, new_args) = if instance.is_default {
+                    let running = crate::modules::process::is_default_instance_running();
+                    if running {
+                        if let Some((pid, args)) =
+                            crate::modules::process::get_instance_root_pid_and_args(
+                                &instance.user_data_dir,
+                                true,
+                                cached_pid,
+                            )
+                        {
+                            (true, Some(pid), Some(args))
+                        } else {
+                            (true, None, None)
+                        }
+                    } else {
+                        (false, None, None)
+                    }
+                } else {
+                    // 非默认实例：优先使用缓存 PID 检测
+                    if let Some(pid) = cached_pid {
+                        if crate::modules::process::is_pid_valid_instance_root(
+                            pid,
+                            &instance.user_data_dir,
+                            false,
+                        ) {
+                            if let Some((_, args)) =
+                                crate::modules::process::get_instance_root_pid_and_args(
+                                    &instance.user_data_dir,
+                                    false,
+                                    Some(pid),
+                                )
+                            {
+                                (true, Some(pid), Some(args))
+                            } else {
+                                (true, Some(pid), None)
+                            }
+                        } else {
+                            // 缓存 PID 无效，重新检测
+                            let running = crate::modules::process::is_instance_running(
+                                &instance.user_data_dir,
+                            );
+                            if running {
+                                if let Some((pid, args)) =
+                                    crate::modules::process::get_instance_root_pid_and_args(
+                                        &instance.user_data_dir,
+                                        false,
+                                        None,
+                                    )
+                                {
+                                    (true, Some(pid), Some(args))
+                                } else {
+                                    (true, None, None)
+                                }
+                            } else {
+                                (false, None, None)
+                            }
+                        }
+                    } else {
+                        let running =
+                            crate::modules::process::is_instance_running(&instance.user_data_dir);
+                        if running {
+                            if let Some((pid, args)) =
+                                crate::modules::process::get_instance_root_pid_and_args(
+                                    &instance.user_data_dir,
+                                    false,
+                                    None,
+                                )
+                            {
+                                (true, Some(pid), Some(args))
+                            } else {
+                                (true, None, None)
+                            }
+                        } else {
+                            (false, None, None)
+                        }
+                    }
+                };
+
+                // 更新实例配置（只在 PID 变化时保存）
+                let mut need_save = false;
+
+                if is_running {
+                    if new_pid != instance.last_root_pid {
+                        instance.last_root_pid = new_pid;
+                        need_save = true;
+                        logger::log_info(&format!(
+                            "[Instance Monitor] {} detected running, PID: {:?}",
+                            instance.name, new_pid
+                        ));
+                    }
+                    if let Some(args) = new_args {
+                        let args_str = args.join(" ");
+                        if !args_str.contains("--type=") {
+                            if instance.last_launch_args.as_ref() != Some(&args) {
+                                instance.last_launch_args = Some(args);
+                                need_save = true;
+                            }
+                        }
+                    }
+                } else {
+                    // 实例未运行，清除缓存的 PID
+                    if instance.last_root_pid.is_some() {
+                        instance.last_root_pid = None;
+                        need_save = true;
+                    }
+                }
+
+                if need_save {
+                    let _ = crate::modules::instance::save_instance(&instance);
+                }
+            }
+        }
+    });
 }
 
 /// Trigger immediate smart warmup check for a single account
@@ -269,7 +416,9 @@ pub async fn trigger_warmup_for_account(account: &Account) {
     };
 
     // Get quota info (prefer cache as refresh command likely just updated disk/cache)
-    let Ok((fresh_quota, _)) = quota::fetch_quota_with_cache(&token, &account.email, Some(&pid)).await else {
+    let Ok((fresh_quota, _)) =
+        quota::fetch_quota_with_cache(&token, &account.email, Some(&pid)).await
+    else {
         return;
     };
 
@@ -278,12 +427,12 @@ pub async fn trigger_warmup_for_account(account: &Account) {
 
     for model in fresh_quota.models {
         let history_key = format!("{}:{}:100", account.email, model.name);
-        
+
         if model.percentage == 100 {
             // Check history to avoid repeated warmup (with cooldown)
             {
                 let mut history = WARMUP_HISTORY.lock().unwrap();
-                
+
                 // 4 hour cooldown (Pro account resets every 5h, 1h margin)
                 if let Some(&last_warmup_ts) = history.get(&history_key) {
                     let cooldown_seconds = 14400;
@@ -292,7 +441,7 @@ pub async fn trigger_warmup_for_account(account: &Account) {
                         continue;
                     }
                 }
-                
+
                 history.insert(history_key, now_ts);
                 save_warmup_history(&history);
             }
@@ -304,7 +453,11 @@ pub async fn trigger_warmup_for_account(account: &Account) {
                 continue;
             };
 
-            if app_config.scheduled_warmup.monitored_models.contains(&model_to_ping) {
+            if app_config
+                .scheduled_warmup
+                .monitored_models
+                .contains(&model_to_ping)
+            {
                 tasks_to_run.push((model_to_ping, model.percentage));
             }
         } else if model.percentage < 100 {
