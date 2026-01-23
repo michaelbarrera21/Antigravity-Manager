@@ -103,6 +103,11 @@
         "search_placeholder": "搜索邮箱...",
         "all": "全部",
         "available": "可用",
+        "instance": {
+            "ask_start": "该实例当前未运行。是否立即启动？",
+            "start_title": "启动实例",
+            "started": "实例已启动"
+        },
         "low_quota": "低配额",
         "ultra": "ULTRA",
         "pro": "PRO",

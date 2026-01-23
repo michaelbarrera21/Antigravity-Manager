@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { save, open } from '@tauri-apps/plugin-dialog';
+import { save, open, ask } from '@tauri-apps/plugin-dialog';
 import { request as invoke } from '../utils/request';
 import { join } from '@tauri-apps/api/path';
 import { Search, RefreshCw, Download, Upload, Trash2, LayoutGrid, List, ToggleLeft, ToggleRight, Sparkles } from 'lucide-react';
@@ -15,7 +15,7 @@ import Pagination from '../components/common/Pagination';
 import { showToast } from '../components/common/ToastContainer';
 import { Account } from '../types/account';
 import { Instance } from '../types/instance';
-import { listInstances, switchAccountInInstance, getInstanceStatus } from '../services/instanceService';
+import { listInstances, switchAccountInInstance, getInstanceStatus, startInstance } from '../services/instanceService';
 import InstanceSelectDialog from '../components/accounts/InstanceSelectDialog';
 import { cn } from '../utils/cn';
 
@@ -328,10 +328,29 @@ function Accounts() {
             if (allInstances.length === 1) {
                 // 只有一个实例，直接在该实例中切换
                 setSwitchingAccountId(accountId);
-                await switchAccountInInstance(allInstances[0].id, accountId);
+                const isRestarting = await switchAccountInInstance(allInstances[0].id, accountId);
                 await fetchAccounts(); // 刷新账户列表
                 await refreshInstances(); // 刷新实例列表以更新角标
-                showToast(t('common.success'), 'success');
+
+                if (!isRestarting) {
+                    const shouldStart = await ask(t('accounts.instance.ask_start', { defaultValue: 'Instance not running. Start it now?' }), {
+                        title: t('accounts.instance.start_title', { defaultValue: 'Start Instance' }),
+                        kind: 'info',
+                        okLabel: t('common.yes', { defaultValue: 'Yes' }),
+                        cancelLabel: t('common.no', { defaultValue: 'No' })
+                    });
+
+                    if (shouldStart) {
+                        try {
+                            await startInstance(allInstances[0].id);
+                            showToast(t('accounts.instance.started', { defaultValue: 'Instance started' }), 'success');
+                        } catch (e) {
+                            showToast(`${t('common.error')}: ${e}`, 'error');
+                        }
+                    }
+                } else {
+                    showToast(t('common.success'), 'success');
+                }
             } else {
                 // 多个实例，获取运行状态并弹出选择对话框
                 const statuses: Record<string, boolean> = {};
@@ -367,10 +386,32 @@ function Accounts() {
         setSwitchingAccountId(pendingSwitchAccountId);
 
         try {
-            await switchAccountInInstance(instanceId, pendingSwitchAccountId);
+            const isRestarting = await switchAccountInInstance(instanceId, pendingSwitchAccountId);
             await fetchAccounts(); // 刷新账户列表
             await refreshInstances(); // 刷新实例列表以更新角标
-            showToast(t('common.success'), 'success');
+
+            if (!isRestarting) {
+                // 等待一下让 UI 恢复，避免 dialog 冲突
+                setTimeout(async () => {
+                    const shouldStart = await ask(t('accounts.instance.ask_start', { defaultValue: 'Instance not running. Start it now?' }), {
+                        title: t('accounts.instance.start_title', { defaultValue: 'Start Instance' }),
+                        kind: 'info',
+                        okLabel: t('common.yes', { defaultValue: 'Yes' }),
+                        cancelLabel: t('common.no', { defaultValue: 'No' })
+                    });
+
+                    if (shouldStart) {
+                        try {
+                            await startInstance(instanceId);
+                            showToast(t('accounts.instance.started', { defaultValue: 'Instance started' }), 'success');
+                        } catch (e) {
+                            showToast(`${t('common.error')}: ${e}`, 'error');
+                        }
+                    }
+                }, 100);
+            } else {
+                showToast(t('common.success'), 'success');
+            }
         } catch (error) {
             console.error('[Accounts] Switch in instance failed:', error);
             showToast(`${t('common.error')}: ${error}`, 'error');

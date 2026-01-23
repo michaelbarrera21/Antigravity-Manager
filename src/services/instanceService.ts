@@ -128,8 +128,9 @@ export async function setCurrentAccountForInstance(instanceId: string, accountId
  * 3. 如果实例正在运行，执行实际的账号切换
  * @param instanceId 实例 ID
  * @param accountId 账号 ID
+ * @returns true 表示已触发实例重启，false 表示实例未运行
  */
-export async function switchAccountInInstance(instanceId: string, accountId: string): Promise<void> {
+export async function switchAccountInInstance(instanceId: string, accountId: string): Promise<boolean> {
     return await invoke('switch_account_in_instance', { instanceId, accountId });
 }
 

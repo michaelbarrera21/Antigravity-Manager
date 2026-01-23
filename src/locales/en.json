@@ -103,6 +103,11 @@
         "search_placeholder": "Search email...",
         "all": "All",
         "available": "Available",
+        "instance": {
+            "ask_start": "Instance is not running. Start it now?",
+            "start_title": "Start Instance",
+            "started": "Instance started"
+        },
         "low_quota": "Low Quota",
         "ultra": "ULTRA",
         "pro": "PRO",
