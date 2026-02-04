@@ -211,6 +211,545 @@ print(response.choices[0].message.content)
 ## 📝 Developer & Community
 
 *   **Changelog**:
+    *   **v4.1.1 (2026-02-04)**:
+        -   **[Core Feature] Update Checker Enhanced (Update Checker 2.0) (PR #1494)**:
+            -   **Proxy Support**: The update checker now fully respects the global upstream proxy configuration.
+            -   **Multi-layer Fallback**: Implemented a 3-layer fallback strategy: `GitHub API -> GitHub Raw -> jsDelivr`, significantly improving update detection reliability.
+            -   **Observability**: The update notification now displays the source of the detection.
+        -   **[Core Optimization] Antigravity Database Compatibility Improvement (>= 1.16.5)**:
+            -   **Smart Version Detection**: Added a cross-platform version detection module (macOS/Windows/Linux) to automatically identify the Antigravity client version.
+            -   **Format Adaptation**: Supported the new `antigravityUnifiedStateSync.oauthToken` format for v1.16.5+ while maintaining backward compatibility for legacy formats.
+            -   **Smart Injection**: Implemented a version-aware injection strategy with a dual-format fallback mechanism to ensure seamless account switching.
+    *   **v4.1.0 (2026-02-04)**:
+        -   **[Major Update] Proxy Pool 2.0 & Stability Enhancements**:
+            -   **Account-level Exclusive IP Isolation**: Implemented strong binding between accounts and proxies. Bound proxies are automatically isolated from the public pool.
+            -   **Protocol Auto-completion**: Backend now automatically handles short-hand inputs (e.g., `ip:port`) by prepending `http://`.
+            -   **Intelligent Health Check**: Added browser-like User-Agent to prevent blocks and switched default fallback check URL to `cloudflare.com`.
+            -   **Responsive Status Sync**: Fixed the "sleep-before-check" logic, ensuring immediate UI status updates on startup.
+            -   **Persistence Bug Fix**: Resolved race conditions where high-frequency polling could rollback manual proxy additions.
+        -   **Proxy Pool 2.0 Logic Breakdown**:
+            -   **Scene 1: Full-chain Locking** — Once Account A is bound to Node-01, all requests (Token refresh, Quota sync, AI inference) are forced through Node-01. Google sees a consistent IP for the account.
+            -   **Scene 2: Auto-Isolation for Public Pool** — Account B has no binding. Node-01 is automatically excluded from the public rotation as it's exclusively used by A, eliminating association risks.
+            -   **Scene 3: Self-healing & Failover** — If Node-01 fails and "Auto failover" is on, Account A temporarily borrows from the public pool for urgent tasks (e.g., Token refresh) with audit logs.
+        -   **[New Feature] UserToken Page & Monitoring Enhancements (PR #1475)**:
+            -   **Page Navigation**: Added dedicated UserToken management page for granular token control.
+            -   **Monitoring**: Enhanced system monitoring and routing integration for better observability.
+        -   **[Core Fix] Warmup API Field Missing Fix**:
+            -   **Compilation Fix**: Resolved compilation error caused by missing `username` field in `ProxyRequestLog` initialization.
+        -   **[Core Fix] Docker Warmup 401/502 Error Fix (PR #1479)**:
+            -   **Network Optimization**: Used a client with `.no_proxy()` for Warmup requests in Docker environments, preventing localhost requests from being incorrectly routed to external proxies causing 502/401 errors.
+            -   **Auth Update**: Exempted `/internal/*` paths from authentication, ensuring internal warmup requests are not intercepted.
+        -   **[Core Fix] Debug Console & Binding in Docker/Headless**:
+            -   **Debug Console**: Fixed uninitialized log bridge in Docker and added HTTP API mappings for Web UI log access.
+            -   **Fingerprint Binding**: Enhanced device fingerprint binding logic for better Docker container compatibility and API support.
+        -   **[Core Fix] Account Deletion Cache Sync Fix (Issue #1477)**:
+            -   **Sync Mechanism**: Introduced a global deletion signal synchronization queue, ensuring accounts are purged from memory cache immediately after disk deletion.
+            -   **Thorough Cleanup**: TokenManager now synchronizes the cleanup of tokens, health scores, rate limits, and session bindings for deleted accounts, completely resolving "ghost account" scheduling issues.
+        -   **[UI Optimization] Localize Update Notification (PR #1484)**:
+            -   **i18n Adaptation**: Completely removed hardcoded strings in the update notification dialog, achieving full support for all 12 languages.
+        -   **[UI Upgrade] Navbar Refactor & Responsive Optimization (PR #1493)**:
+            -   **Component Deconstruction**: Split the monolithic Navbar into smaller modular components for better maintainability.
+            -   **Responsive Optimization**: Optimized layout breakpoints and the "Refresh Quota" button's responsive behavior.
+    *   **v4.0.15 (2026-02-03)**:
+        -   **[Core Optimization] Enhanced Warmup Functionality & False-Positive Fixes (PR #1466)**:
+            -   **Logic Optimization**: Removed the hardcoded model whitelist, enabling automatic warmup for all models reaching 100% quota based on account data.
+            -   **Accuracy Fix**: Fixed false-positive warmup status reporting, ensuring success records are only committed when the process truly completes.
+            -   **Extended Features**: Optimized traffic logging for warmup requests and implemented skip logic for 2.5 series models.
+        -   **[Core Optimization] Thinking Budget Global i18n & UX Polishing**:
+            -   **Multi-language Support**: Completed and optimized translations for English, Japanese, Korean, Russian, Spanish, Traditional Chinese, and Arabic.
+            -   **UX Refinement**: Polished settings hints (Auto Hint / Passthrough Warning) to guide users in configured optimal thinking token depth for diverse models.
+    *   **v4.0.14 (2026-02-02)**:
+        -   **[Core Fix] Fix API Key Regeneration in Web/Docker (Issue #1460)**:
+            -   **Resolution**: Resolved the bug where the API Key was regenerated on every page refresh when no config file existed.
+            -   **Consistency**: Improved the configuration loading flow to ensure the initial random key is persisted and environment variable overrides are correctly reflected in the Web UI.
+        -   **[Core Feature] Configurable Thinking Budget (PR #1456)**:
+            -   **Budget Control**: Added a "Thinking Budget" configuration setting in System Settings.
+            -   **Smart Adaptation**: Supports customizing the maximum thinking token limit for models like Claude 3.7+ and Gemini 2.0 Flash Thinking.
+            -   **Default Optimization**: The default setting is optimized to provide a complete thinking process in most scenarios while strictly adhering to upstream budget limits.
+    *   **v4.0.13 (2026-02-02)**:
+        -   **[Core Optimization] Load Balancing Algorithm Upgrade (P2C Algorithm) (PR #1433)**:
+            -   **Algorithm Upgrade**: Upgraded the scheduling algorithm from Round-Robin to P2C (Power of Two Choices).
+            -   **Performance Boost**: Significantly reduced request latency in high-concurrency scenarios and optimized load distribution across backend instances, preventing single-node overloads.
+        -   **[UI Upgrade] Responsive Navbar & Layout (PR #1429)**:
+            -   **Mobile Adaptation**: Redesigned responsive navigation bar, perfectly adapting to mobile devices and small screens.
+            -   **Visual Enhancement**: Added intuitive icons to navigation items, improving the overall visual experience and usability.
+        -   **[New Feature] Enhanced Account Quota Visibility (PR #1429)**:
+            -   **Show All Quotas**: Added a "Show all quotas" toggle in the Accounts page. When enabled, it displays real-time quota information for all dimensions (Ultra/Pro/Free/Image), not just the primary quota.
+        -   **[i18n] Comprehensive Language Support Update**:
+            -   **Coverage Boost**: Completed missing translation keys for 10 languages including Traditional Chinese, Japanese, Korean, Spanish, Arabic, etc.
+            -   **Polishing**: Fixed missing translations for "Show all quotas" and OAuth authorization prompts.
+        -   **[i18n] Background Task Translation Fix (PR #1421)**:
+            -   **Translation Fix**: Resolved missing translations for background tasks (e.g., title generation), ensuring proper localization across all supported languages.
+            -   **Root Cause**: Resolved a `ref` conflict introduced during merge that caused incorrect click detection on mobile/desktop.
+            -   **Outcome**: The language switcher menu now opens and interacts correctly.
+        -   **[Docker/Web Fix] Web IP Management Support (IP Security for Web)**:
+            -   **Feature Completion**: Fixed an issue where IP security features (Logs, Blacklist/Whitelist) were unavailable in Docker/Web mode due to missing backend routes.
+            -   **API Implementation**: Implemented proper RESTful management endpoints, ensuring the Web frontend can fully interact with the security module.
+            -   **UX Polish**: Optimized parameter handling for deletion operations, resolving issues where deleting blacklist/whitelist entries failed in certain browsers.
+    *   **v4.0.12 (2026-02-01)**:
+        -   **[Code Refactoring] Connector Service Optimization**:
+            -   **Deep Optimization**: Rewrote the core logic of the connector service (`connector.rs`) to eliminate inefficient legacy code.
+            -   **Performance Boost**: Optimized the connection establishment and handling process, improving overall system stability and response speed.
+    *   **v4.0.11 (2026-01-31)**:
+        -   **[Core Fix] Endpoint Reordering & Auto-Blocking (Fix 403 VALIDATION_REQUIRED)**:
+            -   **Endpoint Optimization**: Prioritized API endpoints as `Sandbox -> Daily -> Prod`. Using lenient environments first to reduce the occurrence of 403 errors.
+            -   **Smart Blocking**: Upon detecting `VALIDATION_REQUIRED` (403), the system temporarily blocks the account for 10 minutes. Requests will skip this account during the block period to prevent further flagging.
+            -   **Auto-Recovery**: The system automatically attempts to restore the account after the block period expires.
+        -   **[Core Fix] Account Hot-Reloading**:
+            -   **Unified Architecture**: Eliminated duplicate `TokenManager` instances, ensuring the Admin Dashboard and Proxy Service share a single account manager.
+            -   **Real-time Updates**: Fixed the issue where manual enabling/disabling, reordering, or bulk operations required an app restart. Changes now take effect immediately.
+        -   **[Core Fix] Quota Protection Logic Optimization (PR #1344 Patch)**:
+            -   Refined the differentiation between "Disabled" status and "Quota Protected" status in the quota protection logic, ensuring accurate logging and real-time state synchronization.
+        -   **[Core Fix] Restore Health Check Endpoint (PR #1364)**:
+            -   **Route Restoration**: Fixed the missing `/health` and `/healthz` routes that were lost during the 4.0.0 architecture migration.
+            -   **Enhanced Response**: The endpoint now returns a JSON containing `"status": "ok"` and the current application version, facilitating version matching and liveness checks for monitoring systems.
+        -   **[Core Fix] Fix Gemini Flash Thinking Budget Limit (Fix PR #1355)**:
+            -   **Automatic Capping**: Resolved an issue where the default or upstream `thinking_budget` (e.g., 32k) exceeded the limit (24k) for Gemini Flash thinking models (e.g., `gemini-2.0-flash-thinking`), resulting in `400 Bad Request` errors.
+            -   **Multi-Protocol Coverage**: This protection now covers **OpenAI, Claude, and Native Gemini protocols**, ensuring comprehensive safety against invalid budget configurations.
+            -   **Smart Truncation**: The system now automatically detects Flash series models and forcibly caps the thinking budget within safe limits (**24,576**), ensuring successful requests without requiring manual client configuration adjustments.
+        -   **[Core Feature] IP Security & Risk Control System (PR #1369 by @大黄)**:
+            -   **Visual Policy Management**: New "Security Monitor" module for graphical management of IP blacklists and whitelists.
+            -   **Smart Ban Policies**: Implemented CIDR-based subnet banning, auto-release scheduling, and ban reason annotation.
+            -   **Real-time Audit Logs**: Integrated IP-level real-time access log auditing, supporting filtering by IP and time range for quick anomaly detection.
+        -   **[UI Optimization] Premium Visual Experience**:
+            -   **Dialog Polish**: Completely upgraded button styles in IP Security module dialogs, adopting solid colors and shadow designs for clearer operation guidance.
+            -   **Layout Fixes**: Resolved scrollbar anomalies and layout misalignments in the Security Config page, optimizing the tab switching experience.
+        -   **[Core Feature] Debug Console (PR #1385)**:
+            -   **Real-time Log Streaming**: Introduced a full-featured debug console for real-time capture and display of backend logs.
+            -   **Filtering & Searching**: Supports filtering by log levels (Info, Debug, Warn, Error) and global keyword search.
+            -   **Interaction Polish**: Features one-click log clearing, auto-scroll toggle, and full support for both light and dark modes.
+            -   **Backend Bridge**: Implemented a high-performance log bridge to ensure log capture without impacting proxy performance.
+    *   **v4.0.9 (2026-01-30)**:
+        -   **[Core Feature] User-Agent Customization & Version Spoofing (PR #1325)**:
+            - **Dynamic Override**: Allows users to customize the `User-Agent` header for upstream requests in "Service Configuration". This enables simulation of any client version (Cheat Mode), effectively bypassing version blocks or risk controls in certain regions.
+            - **Smart Fallback**: Implemented a three-tier version fetching mechanism (Remote Fetch -> Cargo Version -> Hardcoded). When the primary version API is unavailable, the system automatically parses the official Changelog page to retrieve the latest version, ensuring the UA always masquerades as the latest client.
+            - **Hot Reload**: UA configuration changes take effect immediately without requiring a service restart.
+        -   **[Core Fix] Resolve Quota Protection State Sync Defect (Issue #1344)**:
+            - **Real-time State Sync**: Fixed a logic defect where `check_and_protect_quota()` would exit early when processing disabled accounts. Now, even if an account is disabled, the system still scans and updates its `protected_models` (model-level protection list) in real-time, ensuring accounts with insufficient quota cannot bypass protection mechanisms after being re-enabled.
+            - **Log Path Separation**: Extracted manual disable checks from the quota protection function to the caller, logging accurate messages based on different skip reasons (manual disable/quota protection) to eliminate user confusion.
+        -   **[Core Feature] Cache Management & One-click Clearing (PR #1346)**:
+            - **Backend Integration**: Introduced `src-tauri/src/modules/cache.rs` to calculate and manage temporary file distributions (e.g., translation cache, log fingerprints).
+            - **UI Implementation**: Added a "Clear Cache" feature in "System Settings". Users can view real-time cache size and perform one-click cleanup to reclaim disk space.
+        -   **[i18n] New Language Support (PR #1346)**:
+            - Added complete translation support for **Spanish (es)** and **Malay (my)**.
+        -   **[i18n] Full Language Coverage**:
+            - Added complete translation support for the new feature across 10 languages including En, Zh, Zh-TW, Ar, Ja, Ko, Pt, Ru, Tr, Vi.
+        -   **[i18n] Localize remaining UI strings (PR #1350)**:
+            - **Full Coverage**: Localized the remaining hardcoded strings and untranslated items in the UI, achieving full localization of the interface.
+            - **Removed Redundancy**: Removed all English fallbacks from the code, forcing all components to use i18n keys for localization.
+            - **Language Enhancement**: Improved translation accuracy for Japanese (ja) and ensured consistent display of new UI components across multiple languages.
+    *   **v4.0.8 (2026-01-30)**:
+        -   **[Core Feature] Window State Persistence (PR #1322)**: Automatically restores the window size and position from the previous session.
+        -   **[Core Fix] Graceful Shutdown for Admin Server (PR #1323)**: Fixed the port 8045 binding failure issue on Windows when restarting the app after exit.
+        -   **[Core Feature] Implement Full-link Debug Logging (PR #1308)**:
+            - **Backend Integration**: Introduced `debug_logger.rs` to capture and record raw request, transformed payload, and complete streaming response for OpenAI, Claude, and Gemini handlers.
+            - **Dynamic Configuration**: Supports hot-reloading for logging settings; enable/disable logging or change output directory without restarting the service.
+            - **Frontend Interaction**: Added a "Debug Log" toggle and a custom output directory selector in "Advanced Settings" for easier troubleshooting of protocol conversion and upstream communication.
+        -   **[UI Optimization] Optimize Chart Tooltip Floating Behavior (Issue #1263, PR #1307)**:
+            - **Overflow Defense**: Optimized the tooltip positioning algorithm in `TokenStats.tsx` to ensure floating information stays within the viewport on small windows or high zoom levels, preventing content from being buried by window boundaries.
+        -   **[Core Optimization] Robustness: Dynamic User-Agent Version Fetching with Multi-tier Fallback (PR #1316)**:
+            - **Dynamic Fetching**: Supports fetching the version dynamically from a remote endpoint for real-time UA accuracy.
+            - **Robust Fallback Chain**: Implements a three-tier fallback strategy (Remote Endpoint -> Cargo.toml -> Hardcoded), significantly improving initialization robustness.
+            - **Regex Pre-compilation**: Utilizes `LazyLock` for efficient version parsing, boosting performance and reducing memory jitter.
+            - **Enhanced Observability**: Added structured logging and a `VersionSource` enum, allowing developers to trace versioning origins and troubleshoot fetch failures effortlessly.
+        -   **[Core Fix] Resolve Gemini CLI "Response stopped due to malformed function call." Error (PR #1312)**:
+            - **Parameter Field Alignment**: Renamed `parametersJsonSchema` to `parameters` in tool declarations to align with the latest Gemini API specifications.
+            - **Alignment Engine Enhancement**: Removed redundant parameter wrapping layers for more transparent and direct parameter passing.
+            - **Robustness Check**: Improved resilience against tool-call responses, effectively preventing output interruptions caused by parameter schema mismatches.
+        -   **[Core Fix] Resolve Issue where Port shows as 'undefined' in Docker/Headless Mode (Issue #1305)**: Fixed missing 'port' field and incorrect 'base_url' construction in the management API '/api/proxy/status', ensuring the frontend correctly displays the listening address.
+        -   **[Core Fix] Resolve Web Password Bypass in Docker/Headless Mode (Issue #1309)**:
+            - **Enhanced Default Auth**: Changed the default `auth_mode` to `auto`. In Docker or LAN-access environments, the system now automatically activates authentication to ensure `WEB_PASSWORD` is enforced.
+            - **Environment Variable Support**: Added support for `ABV_AUTH_MODE` and `AUTH_MODE` environment variables, allowing users to explicitly override the authentication mode at startup (supports `off`, `strict`, `all_except_health`, `auto`).
+    *   **v4.0.7 (2026-01-29)**:
+        -   **[Performance] Optimize Docker Build Process (Fix Issue #1271)**:
+            - **Native Architecture Build**: Split AMD64 and ARM64 build tasks into independent parallel jobs and removed the QEMU emulation layer, switching to native GitHub Runners for each architecture. This drastically reduces cross-platform build time from 3 hours to under 10 minutes.
+
+        -   **[Performance] Resolve Docker Version Lag and Crash with Large Datasets (Fix Issue #1269)**:
+            - **Asynchronous DB Operations**: Migrated all time-consuming database queries (traffic logs, token stats, etc.) to the background blocking thread pool (`spawn_blocking`). This eliminates UI freezes and proxy unavailability when viewing large log files (800MB+).
+            - **Smooth Monitoring Logic**: Optimized the monitoring state toggle logic to remove redundant restart logs, improving stability in Docker environments.
+        -   **[Core Fix] Resolve OpenAI Protocol 400 Invalid Argument Error (Fix Issue #1267)**:
+            - **Remove Aggressive Default**: Rolled back the default `maxOutputTokens: 81920` setting introduced in v4.0.6 for OpenAI/Claude protocols. This value exceeded the hard limits of many standard models (e.g., `gemini-3-pro-preview` or native Claude 3.5), causing immediate request rejection.
+            - **Smart Thinking Config**: Refined the thinking model detection logic to only inject `thinkingConfig` for models explicitly ending with `-thinking`. This prevents side effects on standard models (like `gemini-3-pro`) that do not support this parameter.
+        -   **[Compatibility] Fix OpenAI Codex (v0.92.0) Error (Fix Issue #1278)**:
+            - **Field Scrubbing**: Automatically filters out the non-standard `external_web_access` field injected by Codex clients in tool definitions, eliminating the 400 Invalid Argument error from Gemini API.
+            - **Enhanced Robustness**: Added mandatory validation for the tool `name` field. Invalid tool definitions missing a name will now be automatically skipped with a warning instead of failing the request.
+        -   **[Core Feature] Adaptive Circuit Breaker**:
+            - **Model-level Isolation**: Implemented compound key (`account_id:model`) rate limit tracking, ensuring that quota exhaustion of a single model does not lock the entire account.
+            - **Dynamic Backoff Strategy**: Supports user-defined multi-level backoff steps (e.g., `[60, 300, 1800, 7200]`), automatically increasing lock duration based on consecutive failures.
+            - **Live Configuration Refresh**: Integrated with `TokenManager` memory cache to apply configuration changes instantly to the proxy service without requiring a restart.
+            - **Management UI Integration**: Added a comprehensive control panel in the API Proxy page, supporting one-click toggle and manual clearing of rate limit records.
+        -   **[Core Optimization] Improved Log Cleanup & Reduction (Fix Issue #1280)**:
+            - **Automatic Space Recovery**: Introduced a size-based cleanup mechanism that triggers when the log directory exceeds 1GB, purging old logs until usage is below 512MB. This fundamentally prevents disk exhaustion from runaway logs.
+            - **Log Verbosity Reduction**: Downgraded high-frequency logs (OpenAI request/call bodies, TokenManager account pool polling) from INFO to DEBUG. INFO level now only contains concise request summaries.
+    *   **v4.0.6 (2026-01-28)**:
+        -   **[Core Fix] Resolve Google OAuth "Account already exists" Error**:
+            - **Persistence Upgrade**: Upgraded the authorization saving logic from "add only" to `upsert` (update or insert) mode. Re-authorizing an existing account now smoothly updates its tokens and project info without error.
+        -   **[Core Fix] Fix Manual OAuth Code Backfill Failure in Docker/Web Mode**:
+            - **Flow State Pre-initialization**: The backend now synchronizes and initializes the OAuth flow state when generating auth links in web mode. This ensures that manually pasted auth codes or URLs are correctly recognized and processed in environments like Docker where auto-redirect is unavailable.
+        -   **[UX Improvement] Unified OAuth Persistence Path**: Refactored `TokenManager` to ensure all platforms share the same robust account verification and storage logic.
+        -   **[Performance] Optimize Rate Limit Recovery Mechanism (PR #1247)**:
+            - **Auto-Cleanup Frequency**: Shortened the background auto-cleanup interval for rate limit records from 60s to 15s, significantly speeding up business recovery after 429 or 503 errors.
+            - **Smart Sync Clearing**: Optimized account refresh logic to immediately clear local rate limit locks when refreshing single or all accounts, allowing updated quotas to be used instantly.
+            - **Progressive Capacity Backoff**: Optimized the retry strategy for `ModelCapacityExhausted` errors (e.g., 503) from a fixed 15s wait to a tiered `[5s, 10s, 15s]` approach, significantly reducing wait times for transient capacity fluctuations.
+        -   **[Core Fix] Window Titlebar Dark Mode Adaptation (PR #1253)**: Fixed an issue where the titlebar did not follow the system theme when switching to dark mode, ensuring visual consistency.
+260:         -   **[Core Fix] Raise Default Output Limit for Opus 4.5 (Fix Issue #1244)**:
+261:             -   **Limit Breakthrough**: Increased the default `max_tokens` for Claude and OpenAI protocols from 16k to **81,920** (80k).
+262:             -   **Resolve Truncation**: Completely resolved the truncation issue where Opus 4.5 and similar models were capped at around 48k tokens when thinking mode was enabled due to default budget constraints. Users can now enjoy full long-context output capabilities without any configuration.
+        -   **[Core Fix] Fix Ghost Account Issue After Deletion**:
+            -   **Sync Reload**: Fixed a critical bug where deleted accounts would persist in the proxy service's memory cache.
+            -   **Immediate Effect**: Now, deleting single or multiple accounts triggers a mandatory reload of the proxy service, ensuring the deleted accounts are immediately removed from the active pool and no longer participate in request rotation.
+        -   **[Core Fix] Cloudflared Tunnel Startup Fixes (Fix PR #1238)**:
+            -   **Startup Crash Fix**: Removed unsupported command-line arguments (`--no-autoupdate` / `--loglevel`) that caused the cloudflared process to exit immediately.
+            -   **URL Parsing Correction**: Fixed an offset error in named tunnel URL extraction, ensuring correctly formatted access links.
+            -   **Windows Experience**: Added `DETACHED_PROCESS` flags for Windows, enabling fully silent background execution without popup windows.
+    *   **v4.0.5 (2026-01-28)**:
+        -   **[Core Fix] Resolve Google OAuth 400 Error in Docker/Web Mode (Google OAuth Fix)**:
+            - **Protocol Alignment**: Forced `localhost` as the OAuth redirect URI for all modes (including Docker/Web) to bypass Google's security restrictions on private IPs and non-HTTPS environments.
+            - **Workflow Optimization**: Leveraged the existing "Manual Auth Code Submission" feature to ensure successful account authorization even in remote server deployments.
+        -   **[Enhancement] Arabic Language Support & RTL Layout Adaptation (PR #1220)**:
+            - **i18n Expansion**: Added full Arabic (`ar`) language support.
+            - **RTL Layout**: Implemented automatic detection and adaptation for Right-to-Left (RTL) UI layouts.
+            - **Typography**: Integrated the Effra font family to significantly enhance the readability and aesthetics of Arabic text.
+        -   **[Enhancement] Manual Clear Rate Limit Records**:
+            - **Management UI Integration**: Added a "Clear Rate Limit Records" button in the "Proxy Settings -> Account Rotation & Session Scheduling" section, allowing manual clearing of local rate limit locks (429/503 records) across both Desktop and Web modes.
+            - **Smart Sync Linkage**: Implemented smart synchronization of quotas and limits. Refreshing account quotas (single or all) now automatically clears local rate limit states, ensuring immediate effect for updated quotas.
+            - **Backend Core**: Implemented manual and automatic clearing logic within `RateLimitTracker` and `TokenManager` to ensure state consistency under high concurrency.
+            - **API Support**: Added corresponding Tauri commands and Admin API (`DELETE /api/proxy/rate-limits`) to facilitate programmatic management and integration.
+            - **Force Retry**: Enables forcing the next request to ignore previous backoff times and attempt to connect to the upstream directly, facilitating immediate business recovery after network restoration.
+    *   **v4.0.4 (2026-01-27)**:
+        -   **[Enhancement] Deep Integration of Gemini Image Generation & Multi-Protocol Support (PR #1203)**:
+            - **OpenAI Compatibility**: Added support for calling Gemini 3 image models via the standard OpenAI Images API (`/v1/images/generate`), supporting parameters like `size` and `quality`.
+            - **Multi-Protocol Integration**: Enhanced Claude and OpenAI Chat interfaces to support direct image generation parameters, implementing automatic aspect ratio calculation and 4K/2K quality mapping.
+            - **Documentation**: Added `docs/gemini-3-image-guide.md` providing a complete guide for Gemini image generation integration.
+            - **Stability Optimization**: Optimized common utility functions (`common_utils.rs`) and Gemini/OpenAI mapping logic to ensure stable transmission of large payloads.
+        -   **[Core Fix] Align OpenAI Retry & Rate Limit Logic (PR #1204)**:
+            - **Logic Alignment**: Refactored the retry, rate limiting, and account rotation logic for the OpenAI handler to align with the Claude handler, significantly improving stability under high concurrency.
+            - **Hot Reload Optimization**: Ensured that OpenAI requests can accurately execute backoff strategies and automatically switch available accounts when triggering 429 or 503 errors.
+        -   **[Core Fix] Web OAuth Account Persistence Fix**:
+            - **Index Sync**: Resolved an issue where accounts added via Web OAuth were saved as files but not updated in the global account index (`accounts.json`), causing them to disappear after restart or be invisible to the desktop app.
+            - **Lock Unification**: Refactored `TokenManager` persistence logic to reuse `modules::account` core methods, ensuring atomicity of file locks and index updates.
+        -   **[Core Fix] Resolve Google OAuth Non-Localhost Callback Restriction (Fix Issue #1186)**:
+            -   **Issue Context**: Google does not support using non-localhost private IPs as callback URLs in OAuth flows, triggering "Unsafe App" warnings even with `device_id` injection.
+            -   **Solution**: Introduced a standardized "Manual OAuth Submission" flow. When the browser cannot auto-redirect to localhost (e.g., remote deployment), users can manually paste the callback URL or auth code to complete authorization.
+            - **Enhancement**: Refactored the manual submission UI with full i18n support (9 languages) and polished interactions, ensuring successful account addition in any network environment.
+        -   **[Core Fix] Resolve Google Cloud Code API 429 Errors (Fix Issue #1176)**:
+            - **Smart Fallback**: Migrated default API traffic to the more stable Daily/Sandbox environments, bypassing frequent 429 errors currently affecting the production environment (`cloudcode-pa.googleapis.com`).
+            - **Enhanced Robustness**: Implemented a three-level fallback strategy (Sandbox -> Daily -> Prod) to ensure high availability of core business flows under extreme network conditions.
+        -   **[Core Optimization] Account Scheduling Algorithm Upgrade**:
+            - **Health Score System**: Introduced a real-time health score (0.0 to 1.0). Failures (e.g., 429/5xx) significantly penalize the score to demote impaired accounts, while successful requests gradually restore scores for intelligent self-healing.
+            - **Tiered Smart Prioritization**: Re-engineered scheduling priority to `Subscription Tier > Remaining Quota > Health Score`. Ensures that among accounts with the same tier and quota, the most stable one is always prioritized.
+            - **Throttle Delay Mechanism**: In extreme rate-limiting scenarios, if all accounts are locked but one is due to recover within 2s, the system will automatically suspend the thread to wait instead of erroring out. This markedly improves high-concurrency stability and session stickiness.
+            - **Full Protocol Integration**: Refactored the `TokenManager` core interface and completed synchronized adaptation for all handlers (Claude, Gemini, OpenAI, Audio, Warmup), ensuring scheduling changes are transparent to business logic.
+        -   **[Core Fix] Persist Fixed Account Mode Setting (PR #1209)**:
+            -   **Issue**: The Fixed Account Mode setting was reset after service restart in previous versions.
+            -   **Fix**: Implemented persistent storage for the setting, ensuring user preference remains effective after restart.
+        -   **[Core Fix] Millisecond Parsing for Rate Limits (PR #1210)**:
+            -   **Issue**: Some upstream services return `Retry-After` or rate limit headers with decimal millisecond values, causing parsing failures.
+            -   **Fix**: Enhanced time parsing logic to support floating-point time formats, improving compatibility with non-standard upstreams.
+    *   **v4.0.3 (2026-01-27)**:
+        -   **[Enhancement] Increase Body Limit to Support Large Image Payloads (PR #1167)**:
+            - Increased the default request body limit from 2MB to **100MB** to resolve 413 (Payload Too Large) errors during multi-image transfers.
+            - Added environment variable `ABV_MAX_BODY_SIZE` to allow dynamic adjustment of the maximum limit.
+            - Transparently logs the effective Body Limit on startup for easier troubleshooting.
+        -   **[Core Fix] Resolve Google OAuth Authorization Failure Due to Missing 'state' Parameter (Issue #1168)**:
+            - Fixed the "Agent execution terminated" error when adding Google accounts.
+            - Implemented random `state` parameter generation and callback verification to enhance OAuth security and compatibility.
+            - Ensured authorization flows comply with OAuth 2.0 standards in both desktop and web modes.
+        -   **[Core Fix] Resolve Proxy Toggle and Account Changes Requiring Restart in Docker/Web Mode (Issue #1166)**:
+            - Implemented persistent storage for proxy toggle states, ensuring consistency across container restarts.
+            - Added automatic hot-reloading of the Token Manager after adding, deleting, switching, reordering, or importing accounts, making changes effective immediately in the proxy service.
+            - Optimized account switching logic to automatically clear legacy session bindings, ensuring requests are immediately routed to the new account.
+    *   **v4.0.2 (2026-01-26)**:
+        -   **[Core Fix] Session Persistence After Account Switch (Fix Issue #1159)**:
+            - Enhanced database injection logic to synchronize identity info (Email) and clear legacy UserID cache during account switching.
+            - Resolved session association failures caused by mismatches between the new Token and old identity metadata.
+        -   **[Core Fix] Model Mapping Persistence in Docker/Web Mode (Fix Issue #1149)**:
+            - Resolved an issue where model mapping configurations modified via API in Docker or Web deployment modes were not saved to disk.
+            - Ensured the `admin_update_model_mapping` interface correctly invokes persistence logic, so configurations remain effective after container restarts.
+        -   **[Architecture Optimization] MCP Tool Support Architecture Upgrade (Schema Cleaning & Tool Adapters)**:
+            - **Constraint Semantic Backfilling (Constraint Hints)**:
+                - Implemented intelligent constraint migration mechanism that converts unsupported constraint fields (`minLength`, `pattern`, `format`, etc.) into description hints before removal.
+                - Added `CONSTRAINT_FIELDS` constant and `move_constraints_to_description` function to ensure models can understand original constraints through descriptions.
+                - Example: `{"minLength": 5}` → `{"description": "[Constraint: minLen: 5]"}`
+            - **Enhanced anyOf/oneOf Intelligent Flattening**:
+                - Rewrote `extract_best_schema_from_union` function with scoring mechanism to select the best type (object > array > scalar).
+                - Automatically adds `"Accepts: type1 | type2"` hints to descriptions after merging, preserving all possible type information.
+                - Added `get_schema_type_name` function supporting explicit types and structural inference.
+            - **Pluggable Tool Adapter Layer (Tool Adapter System)**:
+                - Created `ToolAdapter` trait providing customized Schema processing capabilities for different MCP tools.
+                - Implemented `PencilAdapter` that automatically adds descriptions for Pencil drawing tool's visual properties (`cornerRadius`, `strokeWidth`) and path parameters.
+                - Established global adapter registry supporting tool-specific optimizations via `clean_json_schema_for_tool` function.
+            - **High-Performance Cache Layer (Schema Cache)**:
+                - Implemented SHA-256 hash-based Schema caching mechanism to avoid redundant cleaning of identical schemas.
+                - Uses LRU eviction strategy with max 1000 entries, memory usage < 10MB.
+                - Provides `clean_json_schema_cached` function and cache statistics, expected 60%+ performance improvement.
+            - **Impact**: 
+                - ✅ Significantly improves Schema compatibility and model understanding for MCP tools (e.g., Pencil)
+                - ✅ Establishes pluggable foundation for adding more MCP tools (filesystem, database, etc.) in the future
+                - ✅ Fully backward compatible, all 25 tests passing
+        -   **[Security Enhancement] Web UI Management Password & API Key Separation (Fix Issue #1139)**:
+            - **Independent Password Configuration**: Support setting a separate management console login password via `ABV_WEB_PASSWORD` or `WEB_PASSWORD` environment variables.
+            - **Intelligent Authentication Logic**: 
+                - Management interfaces prioritize validating the independent password, automatically falling back to `API_KEY` if not set (ensuring backward compatibility).
+                - AI Proxy interfaces strictly only allow `API_KEY` for authentication, achieving permission isolation.
+            - **Configuration UI Support**: Added a management password editing item in "Dashboard - Service Config," supporting one-click retrieval or modification.
+            - **Log Guidance**: Headless mode startup clearly prints the status and retrieval methods for both API Key and Web UI Password.
+    *   **v4.0.1 (2026-01-26)**:
+        -   **[UX Optimization] Theme & Language Transition Smoothness**:
+            - Resolved the UI freezing issue during theme and language switching by decoupling configuration persistence from the state update loop.
+            - Optimized View Transition API usage in the Navbar to ensure non-blocking visual updates.
+            - Made window background sync calls asynchronous to prevent React render delays.
+        -   **[Core Fix] Proxy Service Startup Deadlock**:
+            - Fixed a race condition/deadlock where starting the proxy service would block status polling requests.
+            - Introduced an atomic startup flag and non-blocking status checks to ensure the UI remains responsive during service initialization.
+    *   **v4.0.0 (2026-01-25)**:
+        -   **[Major Architecture] Deep Migration to Tauri v2**:
+            - Fully adapted to Tauri v2 core APIs, including system tray, window management, and event systems.
+            - Resolved asynchronous Trait dynamic dispatch and lifecycle conflict issues, significantly enhancing backend performance and stability.
+        -   **[Deployment Revolution] Native Headless Docker Mode**:
+            - Implemented a "pure backend" Docker image, completely removing dependencies on VNC, noVNC, or XVFB, significantly reducing RAM and CPU usage.
+            - Supports direct hosting of frontend static resources; the management console is accessible via browser immediately after container startup.
+        -   **[Deployment Fix] Arch Linux Installation Script Fix (PR #1108)**:
+            - Fixed the extraction failure in `deploy/arch/PKGBUILD.template` caused by hardcoded `data.tar.zst`.
+            - Implemented dynamic compression format detection using wildcards, ensuring compatibility across different `.deb` package versions.
+        -   **[Management Upgrade] Full-Featured Web Console**:
+            - Refactored the management dashboard, enabling all core features (Account management, API proxy monitoring, OAuth authorization, model mapping) to be completed via browser.
+            - Completed OAuth callback handling for Web mode, supporting `ABV_PUBLIC_URL` customization, perfectly adapting to remote VPS or NAS deployment scenarios.
+        -   **[Normalization] Structural Cleanup & Unitization**:
+            - Cleaned up redundant `deploy` directories and legacy scripts, resulting in a more modern project structure.
+            - Standardized the Docker image name as `antigravity-manager` and integrated a dedicated `docker/` directory and manual.
+        -   **[API Enhancement] Traffic Logs & Monitoring**:
+            - Optimized the real-time monitoring experience for traffic logs, adding polling mechanisms and statistics endpoints for Web mode.
+            - Refined management API route placeholder naming for improved calling precision.
+        -   **[UX Improvement] Monitor Page Layout & Dark Mode Optimization (PR #1105)**:
+            -   **Layout Refactoring**: Optimized the container layout of the traffic log page with a fixed max-width and responsive margins. This resolves content stretching issues on large screens, offering a more comfortable visual experience.
+            -   **Dark Mode Consistency**: Migrated the color scheme of the log detail modal from hardcoded Slate colors to the Base theme. This ensures seamless integration with the global dark mode style and improves visual consistency.
+        -   **[UX Improvement] Auto-Update Fallback Mechanism**:
+            -   **Smart Fallback**: Fixed the issue where the update button would be unresponsive if the native package was not ready (e.g., Draft Release). The system now detects this state, notifies the user, and gracefully falls back to browser-based download.
+        -   **[Core Fix] Deep Optimization of Signature Cache & Rewind Detection (PR #1094)**:
+            -   **400 Error Self-healing**: Enhanced the cleaning logic for thinking block signatures. The system now automatically identifies "orphaned signatures" caused by server restarts and proactively strips them before sending to upstream, fundamentally preventing `400 Invalid signature` errors.
+            -   **Rewind Detection Mechanism**: Upgraded the cache layer to include Message Count validation. When a user rewinds the conversation history and resends, the system automatically resets the signature state to ensure dialogue flow validity.
+            -   **Full-chain Adaptation**: Optimized data links for Claude, Gemini, and z.ai (Anthropic) to ensure precise propagation of message counts in both streaming and non-streaming requests.
+        -   **[OpenAI Robustness] Enhanced Retry Policy & Model-level Isolation (PR #1093)**:
+            -   **Robust Retries**: Enforced a minimum of 2 attempts for OpenAI handlers to handle transient jitters; removed hard-stop on quota exhaustion to allow account rotation.
+            -   **Model-level Isolation**: Implemented fine-grained rate limiting for OpenAI requests, preventing model-specific limits from locking the whole account.
+            -   **API Fix**: Resolved an email/ID inconsistency in TokenManager's async interface, ensuring accurate rate-limit tracking.
+        -   **[System Robustness] Unified Retry & Backoff Hub**:
+            -   **Logic Normalization**: Abstracted retry logic from individual protocol handlers into `common.rs`, achieving system-wide logic normalization.
+            -   **Enforced Backoff Delays**: Completely fixed the issue where requests would retry immediately when a `Retry-After` header was missing. All handlers now execute physical wait times via the shared module before retrying, protecting IP reputation.
+            -   **Aggressive Parameter Tuning**: Significantly increased initial backoff times for 429 and 503 errors to **5s-10s**, drastically reducing production risk and prevent account bans.
+        -   **[CLI Sync Optimization] Resolved Token Conflict & Model Config Cleanup (PR #1054)**:
+            -   **Automatic Conflict Resolution**: Automatically removes the conflicting `ANTHROPIC_AUTH_TOKEN` when setting `ANTHROPIC_API_KEY`, resolving sync errors for the Claude CLI.
+            -   **Environment Variable Cleanup**: Proactively removes environment variables like `ANTHROPIC_MODEL` that might interfere with model defaults, ensuring consistent CLI behavior.
+            -   **Configuration Robustness**: Improved handling of empty API keys to prevent invalid configurations from affecting the sync process.
+
+    *   **v4.0.0 (2026-01-25)**:
+        -   **[Core Feature] Configurable Background Task Models**:
+            -   **Enhancement**: Users can now customize the model used for "Background Tasks" (e.g., title generation, summary compression), decoupled from the hardcoded `gemini-2.5-flash`.
+            -   **UI Update**: Added a "Background Task Model" setting in the "Model Mapping" page, allowing selection of any available model (e.g., `gemini-3-flash`) via dropdown.
+            -   **Routing Fix**: Resolved an issue where background tasks might bypass user custom mappings. `internal-background-task` now strictly adheres to user redirection rules.
+        -   **[Important Notice] Upstream Model Capacity Warning**:
+            -   **Capacity Exhausted**: We have received numerous reports that upstream Google `gemini-2.5-flash` and `gemini-2.5-flash-lite` models are currently experiencing severe capacity limitations (Rate Limited / Capacity Exhausted).
+            -   **Recommended Action**: To ensure service availability, we strongly recommend manually redirecting these models to alternatives (e.g., `gemini-3-flash` or `gemini-3-pro-high`) in "Custom Mappings" until upstream services recover.
+        -   **[Core Fix] Windows Startup Argument Support (PR #973)**:
+            -   **Fix**: Resolved an issue where startup arguments (e.g., tunneling configurations) were not correctly parsed and applied on the Windows platform. Thanks to @Mag1cFall for the contribution.
+        -   **[Core Fix] Enhanced Claude Signature Validation (PR #1009)**:
+            -   **Optimization**: Strengthened the signature validation logic for Claude models, fixing 400 errors in long conversations or complex tool-calling scenarios.
+            -   **Compatibility**: Introduced minimum signature length checks and a trust-on-length strategy for unknown signatures, significantly improving the stability of JSON tool calls.
+        -   **[i18n] Vietnamese Translation Optimization (PR #1017)**:
+            -   **Refinement**: Optimized Vietnamese translations for the About page and other UI elements for better clarity and conciseness.
+        -   **[i18n] Turkish Tray Translation Enhancement (PR #1023)**:
+            -   **Optimization**: Added full Turkish translation support for the system tray menu, improving the experience for Turkish-speaking users.
+            -   **[Enhancement] Multi-language Support & I18n Settings (PR #1029)**:
+            -   **New Language Support**: Added more comprehensive support for Portuguese, Japanese, Vietnamese, Turkish, Russian, and more.
+            -   **I18n Settings Panel**: Added a language selector in the Settings page, supporting instant switching of the application's display language.
+        -   **[i18n] Korean Support & UI Refinement (New)**:
+            -   **Korean Integration**: Added full Korean (`ko`) translation support, available for selection in Settings.
+            -   **UI Upgrade**: Refactored the language switcher in the top navigation bar from a single-click toggle to a more intuitive dropdown menu, displaying language abbreviations and full names for better usability.
+    *   **v3.3.49 (2026-01-22)**:
+        -   **[Core Fix] Thinking Interruption & 0-Token Defense (Fix Thinking Interruption)**:
+            -   **Issue**: Addressed an issue where Gemini models would unexpectedly terminate the stream after outputting "Thinking" content, causing Claude clients to receive 0-token responses and deadlock with errors.
+            -   **Defense Mechanism**:
+                - **State Tracking**: Real-time monitoring of streaming responses to detect "Thinking-only" states (Thinking sent, Content pending).
+                - **Auto-Recovery**: Upon detecting such interruptions, the system automatically closes the Thinking block, injects a system notice, and simulates valid Usage data to ensure the client terminates the session gracefully.
+        -   **[Core Fix] Removed Flash Lite Model to Fix 429 Errors**:
+            -   **Issue**: Observed that `gemini-2.5-flash-lite` is frequently returning 429 errors today due to **Upstream Google Container Capacity Exhausted** (MODEL_CAPACITY_EXHAUSTED), rather than standard account quota limits.
+            -   **Urgent Fix**: Replaced all internal `gemini-2.5-flash-lite` calls (e.g., background title generation, L3 summary compression) and preset mappings with the more stable `gemini-2.5-flash`.
+            -   **User Notice**: If you explicitly used `gemini-2.5-flash-lite` in "Custom Mappings" or "Presets", please update it to another model immediately, or you may continue to experience 429 errors.
+        -   **[UX Optimization] Immediate Effect of Settings (Fix PR #949)**:
+            -   **Instant Apply**: Fixed an issue where language changes required manual saving. Adjustments now apply immediately across the UI.
+        -   **[Code Cleanup] Backend Architecture Refactoring & Optimization (PR #950)**:
+            -   **Streamlining**: Deeply refactored mapping and handling logic within the proxy layer. Removed redundant modules (e.g., `openai/collector.rs`) to significantly improve maintainability.
+            -   **Stability Boost**: Optimized the conversion chains for OpenAI and Claude protocols, unified image configuration parsing, and hardened the context manager's robustness.
+        -   **[Core Fix] State Sync Strategy Update**:
+            -   **Consistency**: Improved the immediate application logic for themes and resolved conflicts between `App.tsx` and `Settings.tsx`, ensuring UI consistency during configuration loading.
+        -   **[Core Optimization] Context Compression & Token Savings**:
+            -   **Early Compression**: Since Claude CLI sends large chunks of history when resuming, compression thresholds are now configurable with lower defaults.
+            -   **L3 Pivot**: The L3 summary reset threshold has been lowered from 90% to 70%, triggering compression earlier to prevent massive token usage.
+            -   **UI Enhancement**: Added L1/L2/L3 compression threshold sliders in Experimental Settings for dynamic user customization.
+        -   **[Enhancement] API Monitor Dashboard Upgrade (PR #951)**:
+            -   **Account Filtering**: Added the ability to filter traffic logs by account, allowing for precise tracking of specific account usage in high-volume environments.
+            -   **Deep Detail Enhancement**: The monitor details page now displays critical metadata including request protocol (OpenAI/Anthropic/Gemini), account used, and mapped physical models.
+            -   **UI & i18n**: Optimized the layout of monitor details and completed translations for all 8 supported languages.
+        -   **[JSON Schema Optimization] Recursive $defs Collection & Improved Fallback (PR #953)**:
+            -   **Recursive Collection**: Added `collect_all_defs()` to gathered `$defs`/`definitions` from all schema levels, fixing missing nested definitions.
+            -   **Ref Flattening**: Always run `flatten_refs()` to catch and handle orphan `$ref` fields.
+            -   **Fallback Method**: Added fallback for unresolved `$ref`, converting them to string type with descriptive hints.
+            -   **Robustness**: Added new test cases for nested defs and unresolved refs to ensure schema processing stability.
+        -   **[Core Fix] Account Index Protection (Fix Issue #929)**:
+            -   **Security Hardening**: Removed automatic deletion logic on load failure, preventing accidental loss of account indexes during environment anomalies or upgrades.
+        -   **[Feature] Deep Optimization of Router & Model Mapping (PR #954)**:
+            -   **Deterministic Router Priority**: Resolved non-deterministic matching issues for multi-wildcard patterns by implementing a priority system based on pattern specificity.
+
+        -   **[Stability] OAuth Callback & Parsing Enhancement (Fix #931, #850, #778)**:
+            -   **Robust Parsing**: Optimized the local callback server's URL parsing logic to improve compatibility across different browsers.
+            -   **Detailed Logging**: Added raw request logging for authorization failures, enabling quicker debugging of network-level interceptions.
+        -   **[Optimization] OAuth Communication Quality (Issue #948, #887)**:
+            -   **Timeout Extension**: Increased auth request timeouts to 60 seconds to significantly improve token exchange success rates in proxy environments.
+            -   **Error Guidance**: Provided clear guidance for Google API connectivity issues, helping users troubleshoot proxy settings.
+        -   **[UX Enhancement] Upstream Proxy Validation & Restart Hint (Contributed by @zhiqianzheng)**:
+            -   **Config Validation**: When the user enables upstream proxy but leaves the URL empty, the save operation is blocked with a clear error message, preventing connection failures due to invalid configuration.
+            -   **Restart Reminder**: After successfully saving proxy settings, users are reminded to restart the app for changes to take effect, reducing troubleshooting time.
+            -   **i18n Support**: Added translations for Simplified Chinese, Traditional Chinese, English, and Japanese.
+
+    *   **v3.3.48 (2026-01-21)**:
+        -   **[Core Fix] Windows Console Flashing Fix (Fix PR #933)**:
+            -   **Problem**: On Windows, launching the application or executing background CLI commands would sometimes cause a command prompt window to briefly flash, disrupting the user experience.
+            -   **Fix**: Added the `CREATE_NO_WINDOW` flag to the `cloudflared` process creation logic, ensuring all background processes run silently without visible windows.
+            -   **Impact**: Resolved the window flashing issue for Windows users during app startup or CLI interactions.
+    *   **v3.3.47 (2026-01-21)**:
+        -   **[Core Fix] Image Generation API Parameter Mapping Enhancement (Fix Issue #911)**:
+            -   **Background**: The `/v1/images/generations` endpoint had two parameter mapping defects:
+                - The `size` parameter only supported hardcoded specific dimension strings; OpenAI standard sizes (like `1280x720`) were incorrectly fallback to `1:1` aspect ratio
+                - The `quality` parameter was only used for Prompt enhancement and not mapped to Gemini's `imageSize`, unable to control the physical resolution of output images
+            -   **Fix Details**:
+                - **Extended `common_utils.rs`**: Added `parse_image_config_with_params` function to support parsing image configuration from OpenAI parameters (`size`, `quality`)
+                - **Dynamic Aspect Ratio Calculation**: Added `calculate_aspect_ratio_from_size` function, using mathematical calculation instead of hardcoded matching, supporting any `WIDTHxHEIGHT` format
+                - **Unified Configuration Parsing**: Modified `handle_images_generations` function, removed hardcoded mapping, calling unified configuration parsing function
+                - **Parameter Mapping**: `quality: "hd"` → `imageSize: "4K"`, `quality: "medium"` → `imageSize: "2K"`
+            -   **Test Verification**: Added 8 unit tests covering OpenAI parameter parsing, dynamic calculation, backward compatibility scenarios, all passing
+            -   **Compatibility Guarantee**:
+                - ✅ Backward Compatible: Chat path (like `gemini-3-pro-image-16-9-4k`) still works normally
+                - ✅ Progressive Enhancement: Supports more OpenAI standard sizes, `quality` parameter correctly mapped
+                - ✅ No Breaking Changes: Claude, Vertex, Gemini protocols unaffected
+            -   **Impact**: Resolved OpenAI Images API parameter mapping issues, all protocols automatically benefit through `common_utils`
+        -   **[Core Optimization] 3-Layer Progressive Context Compression**:
+            -   **Background**: Long conversations frequently trigger "Prompt is too long" errors, manual `/compact` is tedious, and existing compression strategies break LLM's KV Cache, causing cost spikes
+            -   **Solution - Multi-Layer Progressive Compression Strategy**:
+                - **Layer 1 (60% pressure)**: Intelligent Tool Message Trimming
+                    - Removes old tool call/result messages, retains last 5 rounds of interaction
+                    - **Completely preserves KV Cache** (only deletes messages, doesn't modify content)
+                    - Compression rate: 60-90%
+                - **Layer 2 (75% pressure)**: Thinking Content Compression + Signature Preservation
+                    - Compresses Thinking block text content in `assistant` messages (replaces with "...")
+                    - **Fully preserves `signature` field**, resolves Issue #902 (signature loss causing 400 errors)
+                    - Protects last 4 messages from compression
+                    - Compression rate: 70-95%
+                - **Layer 3 (90% pressure)**: Fork Session + XML Summary
+                    - Uses `gemini-2.5-flash-lite` to generate 8-section XML structured summary (extremely low cost)
+                    - Extracts and preserves last valid Thinking signature
+                    - Creates new message sequence: `[User: XML Summary] + [Assistant: Confirmation] + [User's Latest Message]`
+                    - **Completely preserves Prompt Cache** (prefix stable, append-only)
+                    - Compression rate: 86-97%
+            -   **Technical Implementation**:
+                - **New Module**: `context_manager.rs` implements Token estimation, tool trimming, Thinking compression, signature extraction
+                - **Helper Function**: `call_gemini_sync()` - reusable synchronous upstream call function
+                - **XML Summary Template**: 8-section structured summary (goal, tech stack, file state, code changes, debugging history, plan, preferences, signature)
+                - **Progressive Triggering**: Auto-triggers by pressure level, re-estimates Token usage after each compression
+            -   **Cost Optimization**:
+                - Layer 1: Zero cost (doesn't break cache)
+                - Layer 2: Low cost (only breaks partial cache)
+                - Layer 3: Minimal cost (summary uses flash-lite, new session is fully cache-friendly)
+                - **Total Savings**: 86-97% Token cost while maintaining signature chain integrity
+            -   **User Experience**:
+                - Automated: No manual `/compact` needed, system handles automatically
+                - Transparent: Detailed logs record each layer's trigger and effect
+                - Fault-tolerant: Layer 3 returns friendly error on failure
+            -   **Impact**: Completely resolves context management issues in long conversations, significantly reduces API costs, ensures tool call chain integrity
+        -   **[Core Optimization] Context Estimation and Scaling Algorithm Enhancement (PR #925)**:
+            -   **Background**: In long conversation scenarios like Claude Code, the fixed Token estimation algorithm (3.5 chars/token) has huge errors in mixed Chinese-English content, causing the 3-layer compression logic to fail to trigger in time, ultimately still reporting "Prompt is too long" errors
+            -   **Solution - Dynamic Calibration + Multi-language Awareness**:
+                - **Multi-language Aware Estimation**:
+                    - **ASCII/English**: ~4 chars/Token (optimized for code and English docs)
+                    - **Unicode/CJK (Chinese/Japanese/Korean)**: ~1.5 chars/Token (optimized for Gemini/Claude tokenization)
+                    - **Safety Margin**: Additional 15% safety buffer on top of calculated results
+                - **Dynamic Calibrator (`estimation_calibrator.rs`)**:
+                    - **Self-learning Mechanism**: Records "Estimated Token Count" vs Google API's "Actual Token Count" for each request
+                    - **Calibration Factor**: Uses Exponential Moving Average (EMA, 60% old ratio + 40% new ratio) to maintain calibration coefficient
+                    - **Conservative Initialization**: Initial calibration coefficient is 2.0, ensuring extremely conservative compression triggering in early system operation
+                    - **Auto-convergence**: Automatically corrects based on actual data, making estimates increasingly accurate
+                - **Integration with 3-Layer Compression Framework**:
+                    - Uses calibrated Token counts in all estimation stages (initial estimation, re-estimation after Layer 1/2/3)
+                    - Records detailed calibration factor logs after each compression layer for debugging and monitoring
+            -   **Technical Implementation**:
+                - **New Module**: `estimation_calibrator.rs` - Global singleton calibrator, thread-safe
+                - **Modified Files**: `claude.rs`, `streaming.rs`, `context_manager.rs`
+                - **Calibration Data Flow**: Streaming response collector → Extract actual Token count → Update calibrator → Next request uses new coefficient
+            -   **User Experience**:
+                - **Transparency**: Logs show raw estimate, calibrated estimate, and calibration factor for understanding system behavior
+                - **Adaptive**: System automatically adjusts based on user's actual usage patterns (Chinese-English ratio, code volume, etc.)
+                - **Precise Triggering**: Compression logic based on more accurate estimates, significantly reducing "false negatives" and "false positives"
+            -   **Impact**: Significantly improves context management precision, resolves automatic compression failure issues reported in Issue #902 and #867, ensures long conversation stability
+        -   **[Critical Fix] Thinking Signature Recovery Logic Optimization**:
+            -   **Background**: In retry scenarios, signature check logic didn't check Session Cache, causing incorrect Thinking mode disabling, resulting in 0 token requests and response failures
+            -   **Symptoms**:
+                - Retry shows "No valid signature found for function calls. Disabling thinking"
+                - Traffic logs show `I: 0, O: 0` (actual request succeeded but tokens not recorded)
+                - Client may not receive response content
+            -   **Fix Details**:
+                - **Extended Signature Check Scope**: `has_valid_signature_for_function_calls()` now checks Session Cache
+                - **Check Priority**: Global Store → **Session Cache (NEW)** → Message History
+                - **Detailed Logging**: Added signature source tracking logs for debugging
+            -   **Technical Implementation**:
+                - Modified signature validation logic in `request.rs`
+                - Added `session_id` parameter passing to signature check function
+                - Added `[Signature-Check]` log series for tracking signature recovery process
+            -   **Impact**: Completely resolves Thinking mode degradation in retry scenarios, ensures Token statistics accuracy, improves long session stability
+        -   **[Core Fix] Universal Parameter Alignment Engine**:
+            -   **Background**: Completely resolves `400 Bad Request` errors from the Gemini API caused by parameter type mismatches (e.g., string instead of number) during Tool Use.
+            -   **Fix Details**:
+                - **Implementation**: Developed `fix_tool_call_args` in `json_schema.rs` to automatically coerce parameter types (strings to numbers/booleans) based on their JSON Schema definitions.
+                - **Protocol Refactoring**: Refactored both OpenAI and Claude protocol layers to use the unified alignment engine, eliminating scattered hardcoded logic.
+            -   **Resolved Issues**: Fixed failures in tools like `local_shell_call` and `apply_patch` when parameters were incorrectly formatted as strings by certain clients or proxy layers.
+            -   **Impact**: Significantly improves the stability of tool calls and reduces upstream API 400 errors.
+        -   **[Enhancement] Image Model Quota Protection Support (Fix Issue #912)**:
+            -   **Background**: Users reported that the image generation model (G3 Image) lacked quota protection, causing accounts with exhausted quotas to still be used for image requests
+            -   **Fix Details**:
+                - **Backend Configuration**: Added `gemini-3-pro-image` to `default_monitored_models()` in `config.rs`, aligning with Smart Warmup and Pinned Quota Models lists
+                - **Frontend UI**: Added image model option in `QuotaProtection.tsx`, adjusted layout to 4 models per row (consistent with Smart Warmup)
+            -   **Impact**: 
+                - ✅ Backward Compatible: Existing configurations unaffected; new users or config resets will automatically include the image model
+                - ✅ Complete Protection: All 4 core models (Gemini 3 Flash, Gemini 3 Pro High, Claude 4.5 Sonnet, Gemini 3 Pro Image) are now monitored by quota protection
+                - ✅ Auto-trigger: When image model quota falls below threshold, accounts are automatically added to the protection list, preventing further consumption
+        -   **[Transport Layer Optimization] Streaming Response Anti-Buffering**:
+            -   **Background**: When deployed behind reverse proxies like Nginx, streaming responses may be buffered by the proxy, increasing client-side latency
+            -   **Fix Details**:
+                - **Added X-Accel-Buffering Header**: Injected `X-Accel-Buffering: no` header in all streaming responses
+                - **Multi-Protocol Coverage**: Claude (`/v1/messages`), OpenAI (`/v1/chat/completions`), and Gemini native protocol all supported
+            -   **Technical Details**:
+                - Modified files: `claude.rs:L877`, `openai.rs:L314`, `gemini.rs:L240`
+                - This header instructs Nginx and other reverse proxies not to buffer streaming responses, passing them directly to clients
+            -   **Impact**: Significantly reduces streaming response latency in reverse proxy scenarios, improving user experience
+        -   **[Error Recovery Enhancement] Multi-Protocol Signature Error Recovery Prompts**:
+            -   **Background**: When signature errors occur in Thinking mode, merely removing signatures may cause the model to generate empty responses or simple "OK" replies
+            -   **Fix Details**:
+                - **Claude Protocol Enhancement**: Added repair prompts to existing signature error retry logic, guiding the model to regenerate complete responses
+                - **OpenAI Protocol Implementation**: Added 400 signature error detection and repair prompt injection logic
+                - **Gemini Protocol Implementation**: Added 400 signature error detection and repair prompt injection logic
+            -   **Repair Prompt**:
+                ```
+                [System Recovery] Your previous output contained an invalid signature. 
+                Please regenerate the response without the corrupted signature block.
+                ```
+            -   **Technical Details**:
+                - Claude: `claude.rs:L1012-1030` - Enhanced existing logic, supports String and Array message formats
+                - OpenAI: `openai.rs:L391-427` - Complete implementation, uses `OpenAIContentBlock::Text` type
+                - Gemini: `gemini.rs:L17, L299-329` - Modified function signature to support mutable body, injects repair prompts
+            -   **Impact**: 
+                - ✅ Improved error recovery success rate: Model receives clear instructions, avoiding meaningless responses
+                - ✅ Multi-protocol consistency: All 3 protocols have the same error recovery capability
+                - ✅ Better user experience: Reduces conversation interruptions caused by signature errors
+>>>>>>> d968deb (feat: upgrade to 4.1.1 and fix related modules (local save))
     *   **v3.3.46 (2026-01-20)**:
         -   **[Enhancement] Deep Optimization & i18n Standardization for Token Stats (PR #892)**:
             -   **Unified UI/UX**: Implemented custom Tooltip components to unify hover styles across Area, Bar, and Pie charts, enhancing contrast and readability in Dark Mode.

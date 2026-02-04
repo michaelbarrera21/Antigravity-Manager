@@ -515,6 +515,7 @@ pub async fn switch_account(account_id: &str) -> Result<(), String> {
             &account.token.access_token,
             &account.token.refresh_token,
             account.token.expiry_timestamp,
+            &account.email,
         )?;
     } else {
         crate::modules::logger::log_warn(&format!(
@@ -677,6 +678,7 @@ pub async fn switch_account_for_instance(
             &account.token.access_token,
             &account.token.refresh_token,
             account.token.expiry_timestamp,
+            &account.email,
         )?;
     } else {
         crate::modules::logger::log_warn(&format!(
