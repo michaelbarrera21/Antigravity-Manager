@@ -1618,6 +1618,7 @@ pub fn get_instance_pids(user_data_dir: &Path) -> Vec<u32> {
             }
         }
 
+        #[allow(unused_variables)]
         let name = process.name().to_string_lossy().to_lowercase();
         let exe_path = process
             .exe()
