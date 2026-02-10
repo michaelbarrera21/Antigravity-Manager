@@ -7,6 +7,8 @@ mod utils;
 
 use modules::logger;
 use tauri::Manager;
+#[cfg(target_os = "macos")]
+use tracing::warn;
 use tracing::{error, info};
 
 /// Increase file descriptor limit for macOS to prevent "Too many open files" errors

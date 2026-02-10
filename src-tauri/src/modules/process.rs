@@ -1137,9 +1137,12 @@ fn check_standard_locations() -> Option<std::path::PathBuf> {
 // ============== 实例管理相关函数 ==============
 
 use crate::models::Instance;
+#[cfg(target_os = "windows")]
 use once_cell::sync::Lazy;
+#[cfg(target_os = "windows")]
 use std::collections::HashMap;
 use std::path::Path;
+#[cfg(target_os = "windows")]
 use std::sync::Mutex;
 
 /// Windows: 缓存所有进程的命令行参数
