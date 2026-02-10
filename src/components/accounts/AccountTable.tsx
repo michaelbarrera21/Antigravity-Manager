@@ -40,6 +40,7 @@ import {
     ToggleRight,
     Sparkles,
     Layers,
+    Zap,
 } from 'lucide-react';
 import { Account } from '../../types/account';
 import { useTranslation } from 'react-i18next';
@@ -60,6 +61,7 @@ interface AccountTableProps {
     currentAccountId: string | null;
     switchingAccountId: string | null;
     onSwitch: (accountId: string) => void;
+    onSwitchHot?: (accountId: string) => void;
     onRefresh: (accountId: string) => void;
     onViewDevice: (accountId: string) => void;
     onViewDetails: (accountId: string) => void;
@@ -82,6 +84,7 @@ interface SortableRowProps {
     isDragging?: boolean;
     onSelect: () => void;
     onSwitch: () => void;
+    onSwitchHot?: () => void;
     onRefresh: () => void;
     onViewDevice: () => void;
     onViewDetails: () => void;
@@ -98,6 +101,7 @@ interface AccountRowContentProps {
     isRefreshing: boolean;
     isSwitching: boolean;
     onSwitch: () => void;
+    onSwitchHot?: () => void;
     onRefresh: () => void;
     onViewDevice: () => void;
     onViewDetails: () => void;
@@ -207,6 +211,7 @@ function SortableAccountRow({
     isDragging,
     onSelect,
     onSwitch,
+    onSwitchHot,
     onRefresh,
     onViewDevice,
     onViewDetails,
@@ -271,6 +276,7 @@ function SortableAccountRow({
                 isRefreshing={isRefreshing}
                 isSwitching={isSwitching}
                 onSwitch={onSwitch}
+                onSwitchHot={onSwitchHot}
                 onRefresh={onRefresh}
                 onViewDevice={onViewDevice}
                 onViewDetails={onViewDetails}
@@ -294,6 +300,7 @@ function AccountRowContent({
     isRefreshing,
     isSwitching,
     onSwitch,
+    onSwitchHot,
     onRefresh,
     onViewDevice,
     onViewDetails,
@@ -497,6 +504,15 @@ function AccountRowContent({
                     >
                         <ArrowRightLeft className={`w-3.5 h-3.5 ${isSwitching ? 'animate-spin' : ''}`} />
                     </button>
+                    {onSwitchHot && (
+                        <button
+                            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-all"
+                            onClick={(e) => { e.stopPropagation(); onSwitchHot(); }}
+                            title={t('accounts.switch_hot')}
+                        >
+                            <Zap className="w-3.5 h-3.5" />
+                        </button>
+                    )}
                     {onWarmup && (
                         <button
                             className={`p-1.5 text-gray-500 dark:text-gray-400 rounded-lg transition-all ${(isRefreshing || isDisabled) ? 'bg-orange-50 dark:bg-orange-900/10 text-orange-600 dark:text-orange-400 cursor-not-allowed' : 'hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30'}`}
@@ -568,6 +584,7 @@ function AccountTable({
     currentAccountId,
     switchingAccountId,
     onSwitch,
+    onSwitchHot,
     onRefresh,
     onViewDevice,
     onViewDetails,
@@ -661,6 +678,7 @@ function AccountTable({
                                     isDragging={account.id === activeId}
                                     onSelect={() => onToggleSelect(account.id)}
                                     onSwitch={() => onSwitch(account.id)}
+                                    onSwitchHot={onSwitchHot ? () => onSwitchHot(account.id) : undefined}
                                     onRefresh={() => onRefresh(account.id)}
                                     onViewDevice={() => onViewDevice(account.id)}
                                     onViewDetails={() => onViewDetails(account.id)}

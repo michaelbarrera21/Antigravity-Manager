@@ -142,6 +142,7 @@
         "last_used": "Last Used",
         "reset_time": "Reset Time",
         "switch_to": "Switch to this account",
+        "switch_hot": "Hot Switch (No Restart)",
         "actions": "Actions",
         "device_fingerprint": "Device Fingerprint",
         "device_fingerprint_dialog": {

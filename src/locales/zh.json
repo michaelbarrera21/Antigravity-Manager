@@ -142,6 +142,7 @@
         "last_used": "最后使用",
         "reset_time": "重置时间",
         "switch_to": "切换到此账号",
+        "switch_hot": "免重启切换 (Hot Switch)",
         "actions": "操作",
         "device_fingerprint": "设备指纹",
         "device_fingerprint_dialog": {

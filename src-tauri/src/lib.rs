@@ -7,7 +7,7 @@ mod utils;
 
 use modules::logger;
 use tauri::Manager;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 /// Increase file descriptor limit for macOS to prevent "Too many open files" errors
 #[cfg(target_os = "macos")]
@@ -180,6 +180,7 @@ pub fn run() {
             commands::delete_accounts,
             commands::reorder_accounts,
             commands::switch_account,
+            commands::switch_account_hot,
             // Device fingerprint
             commands::get_device_profiles,
             commands::bind_device_profile,

@@ -15,7 +15,7 @@ import Pagination from '../components/common/Pagination';
 import { showToast } from '../components/common/ToastContainer';
 import { Account } from '../types/account';
 import { Instance } from '../types/instance';
-import { listInstances, switchAccountInInstance, getInstanceStatus, startInstance } from '../services/instanceService';
+import { listInstances, switchAccountInInstance, getInstanceStatus, startInstance, switchAccountHot } from '../services/instanceService';
 import InstanceSelectDialog from '../components/accounts/InstanceSelectDialog';
 import { cn } from '../utils/cn';
 
@@ -420,6 +420,18 @@ function Accounts() {
             setTimeout(() => {
                 setSwitchingAccountId(null);
             }, 500);
+        }
+    };
+
+
+    const handleSwitchHot = async (accountId: string) => {
+        try {
+            const res = await switchAccountHot(accountId);
+            console.log('Hot switch result:', res);
+            showToast(t('accounts.toast.switch_hot_success', { defaultValue: 'Hot switch triggered' }), 'success');
+        } catch (error) {
+            console.error('Hot switch failed:', error);
+            showToast(`${t('common.error')}: ${error}`, 'error');
         }
     };
 
@@ -953,6 +965,7 @@ function Accounts() {
                                 currentAccountId={currentAccount?.id || null}
                                 switchingAccountId={switchingAccountId}
                                 onSwitch={handleSwitch}
+                                onSwitchHot={handleSwitchHot}
                                 onRefresh={handleRefresh}
                                 onViewDevice={handleViewDevice}
                                 onViewDetails={handleViewDetails}
@@ -975,6 +988,7 @@ function Accounts() {
                             currentAccountId={currentAccount?.id || null}
                             switchingAccountId={switchingAccountId}
                             onSwitch={handleSwitch}
+                            onSwitchHot={handleSwitchHot}
                             onRefresh={handleRefresh}
                             onViewDevice={handleViewDevice}
                             onViewDetails={handleViewDetails}

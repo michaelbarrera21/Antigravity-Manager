@@ -45,3 +45,7 @@ __pycache__/
 # Reference projects (for development only)
 CLIProxyAPI/
 DOCKER_DEPLOYMENT.md
+
+# WindsurfChatOpen
+.windsurfchatopen/
+.windsurfrules

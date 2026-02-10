@@ -8,6 +8,14 @@ pub mod proxy;
 // 导出 autostart 命令
 pub mod autostart;
 
+use uuid::Uuid;
+
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
 /// 列出所有账号
 #[tauri::command]
 pub async fn list_accounts() -> Result<Vec<Account>, String> {
@@ -122,6 +130,104 @@ pub async fn switch_account(
         let _ = crate::commands::proxy::reload_proxy_accounts(proxy_state).await;
     }
     res
+}
+
+/// 免重启切换账号 (Hot Switch)
+/// 使用 antigravity:// 协议直接传递 Access Token 给 IDE
+#[tauri::command]
+pub async fn switch_account_hot(
+    app: tauri::AppHandle,
+    account_id: String,
+) -> Result<serde_json::Value, String> {
+    modules::logger::log_info(&format!("Hot switching account: {}", account_id));
+
+    // 1. 加载账号
+    let account = modules::load_account(&account_id).map_err(|e| e.to_string())?;
+
+    // 2. 刷新 Token (确保 Access Token 有效)
+    let fresh_token = modules::oauth::ensure_fresh_token(&account.token).await?;
+
+    // 如果 token 更新了，保存回账号
+    if fresh_token.access_token != account.token.access_token {
+        let mut updated_account = account.clone();
+        updated_account.token = fresh_token.clone();
+        modules::account::save_account(&updated_account).map_err(|e| e.to_string())?;
+    }
+
+    // 3. 构造回调 URL
+    // Format: antigravity://codeium.antigravity?access_token=<TOKEN>&state=<UUID>&token_type=Bearer
+    let state = Uuid::new_v4().to_string();
+    let params = [
+        ("access_token", fresh_token.access_token.as_str()),
+        ("state", &state),
+        ("token_type", "Bearer"),
+    ];
+
+    let fragment = serde_urlencoded::to_string(&params)
+        .map_err(|e| format!("Failed to encode URL parameters: {}", e))?;
+
+    // 注意：这里使用 # 还是 ? 取决于协议实现，参考 windsurf 是 #
+    // 但通常 OAuth 回调是 #. 咱们先试 #
+    let callback_url = format!("antigravity://google.antigravity#{}", fragment);
+
+    modules::logger::log_info(&format!("Triggering hot switch callback: {}", callback_url));
+
+    // 4. 打开 URL
+    #[cfg(target_os = "windows")]
+    {
+        use std::process::Command;
+        // 使用 PowerShell Start-Process 以获得更好的 URL 处理兼容性
+        Command::new("powershell")
+            .args(&[
+                "-NoProfile",
+                "-Command",
+                &format!("Start-Process '{}'", callback_url),
+            ])
+            .creation_flags(CREATE_NO_WINDOW)
+            .spawn()
+            .map_err(|e| format!("Failed to open URL: {}", e))?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        use std::process::Command;
+        Command::new("open")
+            .arg(&callback_url)
+            .spawn()
+            .map_err(|e| format!("Failed to open URL: {}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        use std::process::Command;
+        Command::new("xdg-open")
+            .arg(&callback_url)
+            .spawn()
+            .map_err(|e| format!("Failed to open URL: {}", e))?;
+    }
+
+    // 热切换不需要重启实例，只需要更新 Manager 中的当前账号状态
+    // 不调用 switch_account，因为那会关闭并重启实例
+    // 只更新索引中的当前账号 ID
+    let mut index = modules::account::load_account_index().map_err(|e| e.to_string())?;
+    index.current_account_id = Some(account_id.clone());
+    modules::account::save_account_index(&index).map_err(|e| e.to_string())?;
+
+    // 更新最后使用时间
+    let mut updated_account = account.clone();
+    updated_account.last_used = chrono::Utc::now().timestamp();
+    updated_account.token = fresh_token.clone();
+    modules::account::save_account(&updated_account).map_err(|e| e.to_string())?;
+
+    crate::modules::tray::update_tray_menus(&app);
+
+    modules::logger::log_info("Hot switch triggered successfully (no restart)");
+
+    Ok(serde_json::json!({
+        "success": true,
+        "message": "已触发免重启切换，请等待 IDE 处理回调",
+        "url": callback_url // for debug
+    }))
 }
 
 /// 获取当前账号

@@ -140,3 +140,11 @@ export async function switchAccountInInstance(instanceId: string, accountId: str
 export async function getRunningInstances(): Promise<Instance[]> {
     return await invoke('get_running_instances');
 }
+
+/**
+ * 免重启切换账号 (Hot Switch)
+ * @param accountId 账号 ID
+ */
+export async function switchAccountHot(accountId: string): Promise<any> {
+    return await invoke('switch_account_hot', { accountId });
+}

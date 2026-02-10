@@ -1,14 +1,14 @@
+use crate::proxy::monitor::ProxyRequestLog;
+use crate::proxy::server::AppState;
 use axum::{
+    body::Body,
     extract::{Request, State},
     middleware::Next,
     response::Response,
-    body::Body,
 };
-use std::time::Instant;
-use crate::proxy::server::AppState;
-use crate::proxy::monitor::ProxyRequestLog;
-use serde_json::Value;
 use futures::StreamExt;
+use serde_json::Value;
+use std::time::Instant;
 
 const MAX_REQUEST_LOG_SIZE: usize = 100 * 1024 * 1024; // 100MB
 const MAX_RESPONSE_LOG_SIZE: usize = 100 * 1024 * 1024; // 100MB for image responses
@@ -18,17 +18,17 @@ pub async fn monitor_middleware(
     request: Request,
     next: Next,
 ) -> Response {
-    let logging_enabled = state.monitor.is_enabled();
-    
+    let _logging_enabled = state.monitor.is_enabled();
+
     let method = request.method().to_string();
     let uri = request.uri().to_string();
-    
+
     if uri.contains("event_logging") {
         return next.run(request).await;
     }
-    
+
     let start = Instant::now();
-    
+
     let mut model = if uri.contains("/v1beta/models/") {
         uri.split("/v1beta/models/")
             .nth(1)
@@ -44,9 +44,11 @@ pub async fn monitor_middleware(
         match axum::body::to_bytes(body, MAX_REQUEST_LOG_SIZE).await {
             Ok(bytes) => {
                 if model.is_none() {
-                    model = serde_json::from_slice::<Value>(&bytes).ok().and_then(|v|
-                        v.get("model").and_then(|m| m.as_str()).map(|s| s.to_string())
-                    );
+                    model = serde_json::from_slice::<Value>(&bytes).ok().and_then(|v| {
+                        v.get("model")
+                            .and_then(|m| m.as_str())
+                            .map(|s| s.to_string())
+                    });
                 }
                 request_body_str = if let Ok(s) = std::str::from_utf8(&bytes) {
                     Some(s.to_string())
@@ -64,13 +66,15 @@ pub async fn monitor_middleware(
         request_body_str = None;
         request
     };
-    
+
     let response = next.run(request).await;
-    
+
     let duration = start.elapsed().as_millis() as u64;
     let status = response.status().as_u16();
-    
-    let content_type = response.headers().get("content-type")
+
+    let content_type = response
+        .headers()
+        .get("content-type")
         .and_then(|v| v.to_str().ok())
         .unwrap_or("")
         .to_string();
@@ -123,21 +127,21 @@ pub async fn monitor_middleware(
         let (parts, body) = response.into_parts();
         let mut stream = body.into_data_stream();
         let (tx, rx) = tokio::sync::mpsc::channel(64);
-        
+
         tokio::spawn(async move {
             let mut all_stream_data = Vec::new();
             let mut last_few_bytes = Vec::new();
-            
+
             while let Some(chunk_res) = stream.next().await {
                 if let Ok(chunk) = chunk_res {
                     all_stream_data.extend_from_slice(&chunk);
-                    
+
                     if chunk.len() > 8192 {
-                        last_few_bytes = chunk.slice(chunk.len()-8192..).to_vec();
+                        last_few_bytes = chunk.slice(chunk.len() - 8192..).to_vec();
                     } else {
                         last_few_bytes.extend_from_slice(&chunk);
                         if last_few_bytes.len() > 8192 {
-                            last_few_bytes.drain(0..last_few_bytes.len()-8192);
+                            last_few_bytes.drain(0..last_few_bytes.len() - 8192);
                         }
                     }
                     let _ = tx.send(Ok::<_, axum::Error>(chunk)).await;
@@ -145,13 +149,13 @@ pub async fn monitor_middleware(
                     let _ = tx.send(Err(axum::Error::new(e))).await;
                 }
             }
-            
+
             // Parse and consolidate stream data into readable format
             if let Ok(full_response) = std::str::from_utf8(&all_stream_data) {
                 let mut thinking_content = String::new();
                 let mut response_content = String::new();
                 let mut thinking_signature = String::new();
-                
+
                 for line in full_response.lines() {
                     if !line.starts_with("data: ") {
                         continue;
@@ -160,24 +164,28 @@ pub async fn monitor_middleware(
                     if json_str == "[DONE]" {
                         continue;
                     }
-                    
+
                     if let Ok(json) = serde_json::from_str::<Value>(json_str) {
                         // OpenAI format: choices[0].delta.content / reasoning_content
                         if let Some(choices) = json.get("choices").and_then(|c| c.as_array()) {
                             for choice in choices {
                                 if let Some(delta) = choice.get("delta") {
                                     // Thinking/reasoning content
-                                    if let Some(thinking) = delta.get("reasoning_content").and_then(|v| v.as_str()) {
+                                    if let Some(thinking) =
+                                        delta.get("reasoning_content").and_then(|v| v.as_str())
+                                    {
                                         thinking_content.push_str(thinking);
                                     }
                                     // Main response content
-                                    if let Some(content) = delta.get("content").and_then(|v| v.as_str()) {
+                                    if let Some(content) =
+                                        delta.get("content").and_then(|v| v.as_str())
+                                    {
                                         response_content.push_str(content);
                                     }
                                 }
                             }
                         }
-                        
+
                         // Claude/Anthropic format: content_block_delta
                         if let Some(delta) = json.get("delta") {
                             // Thinking block
@@ -193,25 +201,29 @@ pub async fn monitor_middleware(
                                 response_content.push_str(text);
                             }
                         }
-                        
+
                         // Token usage extraction
-                        if let Some(usage) = json.get("usage")
+                        if let Some(usage) = json
+                            .get("usage")
                             .or(json.get("usageMetadata"))
                             .or(json.get("response").and_then(|r| r.get("usage")))
                         {
-                            log.input_tokens = usage.get("prompt_tokens")
+                            log.input_tokens = usage
+                                .get("prompt_tokens")
                                 .or(usage.get("input_tokens"))
                                 .or(usage.get("promptTokenCount"))
                                 .and_then(|v| v.as_u64())
                                 .map(|v| v as u32);
-                            log.output_tokens = usage.get("completion_tokens")
+                            log.output_tokens = usage
+                                .get("completion_tokens")
                                 .or(usage.get("output_tokens"))
                                 .or(usage.get("candidatesTokenCount"))
                                 .and_then(|v| v.as_u64())
                                 .map(|v| v as u32);
-                            
+
                             if log.input_tokens.is_none() && log.output_tokens.is_none() {
-                                log.output_tokens = usage.get("total_tokens")
+                                log.output_tokens = usage
+                                    .get("total_tokens")
                                     .or(usage.get("totalTokenCount"))
                                     .and_then(|v| v.as_u64())
                                     .map(|v| v as u32);
@@ -219,15 +231,18 @@ pub async fn monitor_middleware(
                         }
                     }
                 }
-                
+
                 // Build consolidated response object
                 let mut consolidated = serde_json::Map::new();
-                
+
                 if !thinking_content.is_empty() {
                     consolidated.insert("thinking".to_string(), Value::String(thinking_content));
                 }
                 if !thinking_signature.is_empty() {
-                    consolidated.insert("thinking_signature".to_string(), Value::String(thinking_signature));
+                    consolidated.insert(
+                        "thinking_signature".to_string(),
+                        Value::String(thinking_signature),
+                    );
                 }
                 if !response_content.is_empty() {
                     consolidated.insert("content".to_string(), Value::String(response_content));
@@ -238,34 +253,45 @@ pub async fn monitor_middleware(
                 if let Some(output) = log.output_tokens {
                     consolidated.insert("output_tokens".to_string(), Value::Number(output.into()));
                 }
-                
+
                 if consolidated.is_empty() {
                     // Fallback: store raw SSE data if parsing failed
                     log.response_body = Some(full_response.to_string());
                 } else {
-                    log.response_body = Some(serde_json::to_string_pretty(&Value::Object(consolidated)).unwrap_or_else(|_| full_response.to_string()));
+                    log.response_body = Some(
+                        serde_json::to_string_pretty(&Value::Object(consolidated))
+                            .unwrap_or_else(|_| full_response.to_string()),
+                    );
                 }
             } else {
-                log.response_body = Some(format!("[Binary Stream Data: {} bytes]", all_stream_data.len()));
+                log.response_body = Some(format!(
+                    "[Binary Stream Data: {} bytes]",
+                    all_stream_data.len()
+                ));
             }
-            
+
             // Fallback token extraction from tail if not already extracted
             if log.input_tokens.is_none() && log.output_tokens.is_none() {
                 if let Ok(full_tail) = std::str::from_utf8(&last_few_bytes) {
                     for line in full_tail.lines().rev() {
-                        if line.starts_with("data: ") && (line.contains("\"usage\"") || line.contains("\"usageMetadata\"")) {
+                        if line.starts_with("data: ")
+                            && (line.contains("\"usage\"") || line.contains("\"usageMetadata\""))
+                        {
                             let json_str = line.trim_start_matches("data: ").trim();
                             if let Ok(json) = serde_json::from_str::<Value>(json_str) {
-                                if let Some(usage) = json.get("usage")
+                                if let Some(usage) = json
+                                    .get("usage")
                                     .or(json.get("usageMetadata"))
                                     .or(json.get("response").and_then(|r| r.get("usage")))
                                 {
-                                    log.input_tokens = usage.get("prompt_tokens")
+                                    log.input_tokens = usage
+                                        .get("prompt_tokens")
                                         .or(usage.get("input_tokens"))
                                         .or(usage.get("promptTokenCount"))
                                         .and_then(|v| v.as_u64())
                                         .map(|v| v as u32);
-                                    log.output_tokens = usage.get("completion_tokens")
+                                    log.output_tokens = usage
+                                        .get("completion_tokens")
                                         .or(usage.get("output_tokens"))
                                         .or(usage.get("candidatesTokenCount"))
                                         .and_then(|v| v.as_u64())
@@ -277,14 +303,17 @@ pub async fn monitor_middleware(
                     }
                 }
             }
-            
+
             if log.status >= 400 {
                 log.error = Some("Stream Error or Failed".to_string());
             }
             monitor.log_request(log).await;
         });
 
-        Response::from_parts(parts, Body::from_stream(tokio_stream::wrappers::ReceiverStream::new(rx)))
+        Response::from_parts(
+            parts,
+            Body::from_stream(tokio_stream::wrappers::ReceiverStream::new(rx)),
+        )
     } else if content_type.contains("application/json") || content_type.contains("text/") {
         let (parts, body) = response.into_parts();
         match axum::body::to_bytes(body, MAX_RESPONSE_LOG_SIZE).await {
@@ -293,19 +322,22 @@ pub async fn monitor_middleware(
                     if let Ok(json) = serde_json::from_str::<Value>(&s) {
                         // 支持 OpenAI "usage" 或 Gemini "usageMetadata"
                         if let Some(usage) = json.get("usage").or(json.get("usageMetadata")) {
-                            log.input_tokens = usage.get("prompt_tokens")
+                            log.input_tokens = usage
+                                .get("prompt_tokens")
                                 .or(usage.get("input_tokens"))
                                 .or(usage.get("promptTokenCount"))
                                 .and_then(|v| v.as_u64())
                                 .map(|v| v as u32);
-                            log.output_tokens = usage.get("completion_tokens")
+                            log.output_tokens = usage
+                                .get("completion_tokens")
                                 .or(usage.get("output_tokens"))
                                 .or(usage.get("candidatesTokenCount"))
                                 .and_then(|v| v.as_u64())
                                 .map(|v| v as u32);
-                                
+
                             if log.input_tokens.is_none() && log.output_tokens.is_none() {
-                                log.output_tokens = usage.get("total_tokens")
+                                log.output_tokens = usage
+                                    .get("total_tokens")
                                     .or(usage.get("totalTokenCount"))
                                     .and_then(|v| v.as_u64())
                                     .map(|v| v as u32);
@@ -316,7 +348,7 @@ pub async fn monitor_middleware(
                 } else {
                     log.response_body = Some("[Binary Response Data]".to_string());
                 }
-                
+
                 if log.status >= 400 {
                     log.error = log.response_body.clone();
                 }
