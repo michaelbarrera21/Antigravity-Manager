@@ -30,9 +30,10 @@ dirs = "5.0"
 reqwest = { version = "0.12", features = ["json", "stream", "socks"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
+log = "0.4"
 rusqlite = { version = "0.32", features = ["bundled"] }
 base64 = "0.22"
-sysinfo = "0.31"
+sysinfo = { version = "0.31", default-features = false, features = ["system"] }
 tokio = { version = "1", features = ["full"] }
 url = "2.5.7"
 tauri-plugin-dialog = "2.6.0"
