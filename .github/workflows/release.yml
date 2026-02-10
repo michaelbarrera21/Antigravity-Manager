@@ -10,7 +10,27 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest"
+            args: "--target aarch64-apple-darwin"
+            artifact_name: "aarch64-apple-darwin"
+          - platform: "macos-latest"
+            args: "--target x86_64-apple-darwin"
+            artifact_name: "x86_64-apple-darwin"
+          - platform: "macos-latest"
+            args: "--target universal-apple-darwin"
+            artifact_name: "universal-apple-darwin"
+          - platform: "ubuntu-22.04"
+            args: ""
+            artifact_name: "linux"
+          - platform: "windows-latest"
+            args: ""
+            artifact_name: "windows"
+
+    runs-on: ${{ matrix.platform }}
     
     steps:
       - name: Checkout code
@@ -28,7 +48,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install dependencies (Ubuntu)
+      - name: Install dependencies (Linux)
+        if: startsWith(matrix.platform, 'ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf pkg-config libsoup-3.0-dev javascriptcoregtk-4.1 libjavascriptcoregtk-4.1-dev
@@ -36,6 +57,8 @@ jobs:
 
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Get package info
         id: package
@@ -65,6 +88,53 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tauriScript: npm run tauri
+          args: ${{ matrix.args }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: antigravity-tools-${{ matrix.artifact_name }}
+          path: |
+            src-tauri/target/release/bundle/
+          retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: needs.build.result == 'success'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get package info
+        id: package
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./package.json').name")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          TAG="v${{ steps.package.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+            echo "Tag $TAG already exists, skipping release"
+          else
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+            echo "Tag $TAG does not exist, will create release"
+          fi
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: antigravity-tools-*
+          merge-multiple: true
 
       - name: Create tag and release
         if: steps.check_tag.outputs.tag_exists == 'false'
@@ -84,12 +154,12 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            src-tauri/target/release/bundle/deb/*.deb
-            src-tauri/target/release/bundle/appimage/*.AppImage
-            src-tauri/target/release/bundle/rpm/*.rpm
-            src-tauri/target/release/bundle/macos/*.dmg
-            src-tauri/target/release/bundle/windows/*.msi
-            src-tauri/target/release/bundle/nsis/*.exe
+            bundle/deb/*.deb
+            bundle/appimage/*.AppImage
+            bundle/rpm/*.rpm
+            bundle/macos/*.dmg
+            bundle/windows/*.msi
+            bundle/nsis/*.exe
           body: |
             ## 📦 Antigravity Tools v${{ steps.package.outputs.version }}
             
@@ -107,6 +177,7 @@ jobs:
             
             #### macOS
             - `.dmg` - macOS 磁盘映像
+            - 支持 Apple Silicon (M1/M2) 和 Intel
             
             #### Linux
             - `.deb` - Debian/Ubuntu 包
@@ -116,6 +187,6 @@ jobs:
             ---
             *自动构建于 ${{ github.sha }}*
             
-            详细更新内容请查看 [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/README.md)
+            详细更新内容请查看 [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
