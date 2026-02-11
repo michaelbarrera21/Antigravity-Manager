@@ -133,6 +133,13 @@ jobs:
         with:
           pattern: antigravity-tools-*
           merge-multiple: true
+          path: artifacts
+
+      - name: List downloaded artifacts
+        shell: bash
+        run: |
+          echo "=== Downloaded artifacts ==="
+          find artifacts -type f | head -100
 
       - name: Create tag and release
         if: steps.check_tag.outputs.tag_exists == 'false'
@@ -153,12 +160,12 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            bundle/deb/*.deb
-            bundle/appimage/*.AppImage
-            bundle/rpm/*.rpm
-            bundle/macos/*.dmg
-            bundle/windows/*.msi
-            bundle/nsis/*.exe
+            artifacts/deb/*.deb
+            artifacts/appimage/*.AppImage
+            artifacts/rpm/*.rpm
+            artifacts/dmg/*.dmg
+            artifacts/msi/*.msi
+            artifacts/nsis/*.exe
           body: |
             ## 📦 Antigravity Tools v${{ steps.package.outputs.version }}
             
