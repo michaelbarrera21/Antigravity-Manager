@@ -139,7 +139,7 @@ jobs:
         shell: bash
         run: |
           echo "=== Downloaded artifacts ==="
-          find artifacts -type f | head -100
+          find artifacts -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.rpm" -o -name "*.dmg" -o -name "*.msi" -o -name "*.exe" \) || true
 
       - name: Create tag and release
         if: steps.check_tag.outputs.tag_exists == 'false'
