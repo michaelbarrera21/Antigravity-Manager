@@ -26,10 +26,9 @@ const PinnedQuotaModels = ({ config, onChange }: PinnedQuotaModelsProps) => {
     };
 
     const modelOptions = [
-        { id: 'gemini-3-pro-high', label: 'G3 Pro', desc: 'Gemini 3 Pro High' },
+        { id: 'gemini-3.1-pro-high', label: 'G3 Pro', desc: 'Gemini 3.1 Pro High' },
         { id: 'gemini-3-flash', label: 'G3 Flash', desc: 'Gemini 3 Flash' },
-        { id: 'gemini-3-pro-image', label: 'G3 Image', desc: 'Gemini 3 Pro Image' },
-        { id: 'claude-sonnet-4-5-thinking', label: 'Claude 4.5', desc: 'Claude Sonnet 4.5 Thinking' }
+        { id: 'claude-sonnet-4-6', label: 'Claude', desc: 'Claude Sonnet 4.6' }
     ];
 
     return (

@@ -1221,13 +1221,21 @@ pub async fn set_current_account_for_instance(
 }
 
 /// 在指定实例中切换账号
+/// 返回 bool 表示实例之前是否在运行（即是否触发了自动重启）
 #[tauri::command]
 pub async fn switch_account_in_instance(
     instance_id: String,
     account_id: String,
-) -> Result<(), String> {
+) -> Result<bool, String> {
     // 加载实例配置
     let mut instance = modules::instance::load_instance(&instance_id)?;
+
+    // 检查实例是否正在运行
+    let was_running = if instance.is_default {
+        modules::process::is_default_instance_running()
+    } else {
+        modules::process::is_instance_running(&instance.user_data_dir)
+    };
 
     // 更新实例的 current_account_id
     instance.current_account_id = Some(account_id.clone());
@@ -1235,7 +1243,10 @@ pub async fn switch_account_in_instance(
 
     // 使用新的 switch_account_for_instance 函数执行实际切换
     // 如果实例正在运行，会自动停止 -> 切换账号 -> 重启
-    modules::account::switch_account_for_instance(&account_id, &instance, true).await
+    modules::account::switch_account_for_instance(&account_id, &instance, true).await?;
+
+    // 返回实例之前是否在运行
+    Ok(was_running)
 }
 
 /// 获取所有运行中的实例

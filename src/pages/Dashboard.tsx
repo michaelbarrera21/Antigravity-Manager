@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Users, Sparkles, Bot, AlertTriangle, ArrowRight, Download, RefreshCw } from 'lucide-react';
+import { Users, Zap, Bot, AlertTriangle, ArrowRight, Download, RefreshCw } from 'lucide-react';
 import { useAccountStore } from '../stores/useAccountStore';
 import InstanceAccounts from '../components/dashboard/InstanceAccounts';
 import BestAccountsCompact from '../components/dashboard/BestAccountsCompact';
@@ -33,21 +33,21 @@ function Dashboard() {
     // 计算统计数据
     const stats = useMemo(() => {
         const geminiQuotas = accounts
-            .map(a => a.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3-pro-high')?.percentage || 0)
+            .map(a => a.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3.1-pro-high')?.percentage || 0)
             .filter(q => q > 0);
 
-        const geminiImageQuotas = accounts
-            .map(a => a.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3-pro-image')?.percentage || 0)
+        const geminiFlashQuotas = accounts
+            .map(a => a.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3-flash')?.percentage || 0)
             .filter(q => q > 0);
 
         const claudeQuotas = accounts
-            .map(a => a.quota?.models.find(m => m.name.toLowerCase() === 'claude-sonnet-4-5')?.percentage || 0)
+            .map(a => a.quota?.models.find(m => m.name.toLowerCase() === 'claude-sonnet-4-6')?.percentage || 0)
             .filter(q => q > 0);
 
         const lowQuotaCount = accounts.filter(a => {
             if (a.quota?.is_forbidden) return false;
-            const gemini = a.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3-pro-high')?.percentage || 0;
-            const claude = a.quota?.models.find(m => m.name.toLowerCase() === 'claude-sonnet-4-5')?.percentage || 0;
+            const gemini = a.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3.1-pro-high')?.percentage || 0;
+            const claude = a.quota?.models.find(m => m.name.toLowerCase() === 'claude-sonnet-4-6')?.percentage || 0;
             return gemini < 20 || claude < 20;
         }).length;
 
@@ -56,8 +56,8 @@ function Dashboard() {
             avgGemini: geminiQuotas.length > 0
                 ? Math.round(geminiQuotas.reduce((a, b) => a + b, 0) / geminiQuotas.length)
                 : 0,
-            avgGeminiImage: geminiImageQuotas.length > 0
-                ? Math.round(geminiImageQuotas.reduce((a, b) => a + b, 0) / geminiImageQuotas.length)
+            avgGeminiFlash: geminiFlashQuotas.length > 0
+                ? Math.round(geminiFlashQuotas.reduce((a, b) => a + b, 0) / geminiFlashQuotas.length)
                 : 0,
             avgClaude: claudeQuotas.length > 0
                 ? Math.round(claudeQuotas.reduce((a, b) => a + b, 0) / claudeQuotas.length)
@@ -194,7 +194,7 @@ function Dashboard() {
                     <div className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200">
                         <div className="flex items-center justify-between mb-2">
                             <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded-md">
-                                <Sparkles className="w-4 h-4 text-green-500 dark:text-green-400" />
+                                <Zap className="w-4 h-4 text-green-500 dark:text-green-400" />
                             </div>
                         </div>
                         <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats.avgGemini}%</div>
@@ -209,14 +209,14 @@ function Dashboard() {
                     <div className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200">
                         <div className="flex items-center justify-between mb-2">
                             <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-md">
-                                <Sparkles className="w-4 h-4 text-purple-500 dark:text-purple-400" />
+                                <Zap className="w-4 h-4 text-purple-500 dark:text-purple-400" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats.avgGeminiImage}%</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.avg_gemini_image')}</div>
-                        {stats.avgGeminiImage > 0 && (
-                            <div className={`text-[10px] mt-1 ${stats.avgGeminiImage >= 50 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                                {stats.avgGeminiImage >= 50 ? t('dashboard.quota_sufficient') : t('dashboard.quota_low')}
+                        <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats.avgGeminiFlash}%</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.avg_gemini_flash')}</div>
+                        {stats.avgGeminiFlash > 0 && (
+                            <div className={`text-[10px] mt-1 ${stats.avgGeminiFlash >= 50 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                                {stats.avgGeminiFlash >= 50 ? t('dashboard.quota_sufficient') : t('dashboard.quota_low')}
                             </div>
                         )}
                     </div>

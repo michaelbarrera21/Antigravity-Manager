@@ -46,6 +46,5 @@ __pycache__/
 CLIProxyAPI/
 DOCKER_DEPLOYMENT.md
 
-# WindsurfChatOpen
-.windsurfchatopen/
-.windsurfrules
+# EnhanceChatOpen
+.EnhanceChatopen/

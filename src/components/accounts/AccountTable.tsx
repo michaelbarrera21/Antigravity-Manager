@@ -315,10 +315,9 @@ function AccountRowContent({
 
     // 模型配置映射：model_id -> { label, protectedKey }
     const MODEL_CONFIG: Record<string, { label: string; protectedKey: string }> = {
-        'gemini-3-pro-high': { label: 'G3 Pro', protectedKey: 'gemini-pro' },
+        'gemini-3.1-pro-high': { label: 'G3 Pro', protectedKey: 'gemini-pro' },
         'gemini-3-flash': { label: 'G3 Flash', protectedKey: 'gemini-flash' },
-        'gemini-3-pro-image': { label: 'G3 Image', protectedKey: 'gemini-pro-image' },
-        'claude-sonnet-4-5-thinking': { label: 'Claude 4.5', protectedKey: 'claude-sonnet' },
+        'claude-sonnet-4-6': { label: 'Claude', protectedKey: 'claude-sonnet' },
     };
 
     // 获取要显示的模型列表

@@ -27,10 +27,9 @@ interface AccountCardProps {
 
 function AccountCard({ account, selected, onSelect, isCurrent, isRefreshing, isSwitching = false, onSwitch, onSwitchHot, onRefresh, onViewDetails, onExport, onDelete, onToggleProxy, onViewDevice, onWarmup, instanceName }: AccountCardProps) {
     const { t } = useTranslation();
-    const geminiProModel = account.quota?.models.find(m => m.name === 'gemini-3-pro-high');
-    const geminiFlashModel = account.quota?.models.find(m => m.name === 'gemini-3-flash');
-    const geminiImageModel = account.quota?.models.find(m => m.name === 'gemini-3-pro-image');
-    const claudeModel = account.quota?.models.find(m => m.name === 'claude-sonnet-4-5-thinking');
+    const geminiProModel = account.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3.1-pro-high');
+    const geminiFlashModel = account.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3-flash');
+    const claudeModel = account.quota?.models.find(m => m.name.toLowerCase() === 'claude-sonnet-4-6');
     const isDisabled = Boolean(account.disabled);
 
     const getColorClass = (percentage: number) => {
@@ -152,7 +151,7 @@ function AccountCard({ account, selected, onSelect, isCurrent, isRefreshing, isS
                                     />
                                 )}
                                 <div className="relative z-10 w-full flex items-center text-[9px] font-mono leading-none whitespace-nowrap">
-                                    <span className="w-[46px] text-gray-500 dark:text-gray-400 font-bold truncate pr-0.5" title="Gemini 3 Pro">G3 Pro</span>
+                                    <span className="w-[46px] text-gray-500 dark:text-gray-400 font-bold truncate pr-0.5" title="Gemini 3.1 Pro">G3 Pro</span>
                                     <div className="flex-1 flex justify-center overflow-hidden">
                                         {geminiProModel?.reset_time ? (
                                             <span className={cn("flex items-center gap-0.5 font-medium transition-colors whitespace-nowrap", getTimeColorClass(geminiProModel.reset_time))}>
@@ -201,35 +200,6 @@ function AccountCard({ account, selected, onSelect, isCurrent, isRefreshing, isS
                                 </div>
                             </div>
 
-                            {/* Gemini Image */}
-                            <div className="relative h-[26px] flex items-center px-1 rounded-lg overflow-hidden border border-gray-100/50 dark:border-white/5 bg-gray-50/30 dark:bg-white/5 group/quota">
-                                {geminiImageModel && (
-                                    <div
-                                        className={`absolute inset-y-0 left-0 transition-all duration-700 ease-out opacity-15 dark:opacity-20 ${getColorClass(geminiImageModel.percentage)}`}
-                                        style={{ width: `${geminiImageModel.percentage}%` }}
-                                    />
-                                )}
-                                <div className="relative z-10 w-full flex items-center text-[9px] font-mono leading-none whitespace-nowrap">
-                                    <span className="w-[46px] text-gray-500 dark:text-gray-400 font-bold truncate pr-0.5" title="Gemini 3 Pro Image">G3 Image</span>
-                                    <div className="flex-1 flex justify-center overflow-hidden">
-                                        {geminiImageModel?.reset_time ? (
-                                            <span className={cn("flex items-center gap-0.5 font-medium transition-colors whitespace-nowrap", getTimeColorClass(geminiImageModel.reset_time))}>
-                                                <Clock className="w-2.5 h-2.5 shrink-0" />
-                                                {formatTimeRemaining(geminiImageModel.reset_time)}
-                                            </span>
-                                        ) : (
-                                            <span className="text-gray-300 dark:text-gray-600 italic scale-90">N/A</span>
-                                        )}
-                                    </div>
-                                    <span className={cn("w-[30px] text-right font-bold transition-colors shrink-0",
-                                        getQuotaColor(geminiImageModel?.percentage || 0) === 'success' ? 'text-emerald-600 dark:text-emerald-400' :
-                                            getQuotaColor(geminiImageModel?.percentage || 0) === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'
-                                    )}>
-                                        {(geminiImageModel?.percentage || 0)}%
-                                    </span>
-                                </div>
-                            </div>
-
                             {/* Claude */}
                             <div className="relative h-[26px] flex items-center px-1 rounded-lg overflow-hidden border border-gray-100/50 dark:border-white/5 bg-gray-50/30 dark:bg-white/5 group/quota">
                                 {claudeModel && (
@@ -239,7 +209,7 @@ function AccountCard({ account, selected, onSelect, isCurrent, isRefreshing, isS
                                     />
                                 )}
                                 <div className="relative z-10 w-full flex items-center text-[9px] font-mono leading-none whitespace-nowrap">
-                                    <span className="w-[46px] text-gray-500 dark:text-gray-400 font-bold truncate pr-0.5" title="Claude-sonnet-4.5">Claude 4.5</span>
+                                    <span className="w-[46px] text-gray-500 dark:text-gray-400 font-bold truncate pr-0.5" title="Claude Sonnet 4.6">Claude</span>
                                     <div className="flex-1 flex justify-center overflow-hidden">
                                         {claudeModel?.reset_time ? (
                                             <span className={cn("flex items-center gap-0.5 font-medium transition-colors whitespace-nowrap", getTimeColorClass(claudeModel.reset_time))}>
