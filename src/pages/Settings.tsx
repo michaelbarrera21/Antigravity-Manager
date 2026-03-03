@@ -643,7 +643,7 @@ function Settings() {
                                     <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.advanced.logs_desc')}</p>
                                 </div>
                                 <div className="badge badge-primary badge-outline gap-2 font-mono">
-                                    v3.3.46
+                                    v3.3.61
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <button
@@ -745,7 +745,7 @@ function Settings() {
                                         <h3 className="text-3xl font-black text-gray-900 dark:text-base-content tracking-tight mb-2">Antigravity Tools</h3>
                                         <div className="flex items-center justify-center gap-2 text-sm">
                                             <span className="px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium border border-blue-200 dark:border-blue-800">
-                                                v3.3.46
+                                                v3.3.61
                                             </span>
                                             <span className="text-gray-400 dark:text-gray-600">•</span>
                                             <span className="text-gray-500 dark:text-gray-400">Professional Account Management</span>
@@ -779,7 +779,7 @@ function Settings() {
 
                                     {/* GitHub Card */}
                                     <a
-                                        href="https://github.com/lbjlaq/Antigravity-Manager"
+                                        href="https://github.com/michaelbarrera21/Antigravity-Manager"
                                         target="_blank"
                                         rel="noreferrer"
                                         className="bg-white dark:bg-base-100 p-4 rounded-2xl border border-gray-100 dark:border-base-300 shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all group flex flex-col items-center text-center gap-3 cursor-pointer"
