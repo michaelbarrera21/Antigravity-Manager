@@ -67,7 +67,7 @@
         "refreshing": "重新整理中...",
         "total_accounts": "總帳號數",
         "avg_gemini": "Gemini 平均配額",
-        "avg_gemini_image": "Gemini 繪圖平均配額",
+        "avg_gemini_flash": "Gemini Flash 平均配額",
         "avg_claude": "Claude 平均配額",
         "low_quota_accounts": "低配額帳號",
         "quota_sufficient": "✓ 配額充足",

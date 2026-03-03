@@ -65,7 +65,7 @@
         "refreshing": "Atualizando...",
         "total_accounts": "Total de Contas",
         "avg_gemini": "Cota Média Gemini",
-        "avg_gemini_image": "Cota Média Gemini Imagem",
+        "avg_gemini_flash": "Cota Média Gemini Flash",
         "avg_claude": "Cota Média Claude",
         "low_quota_accounts": "Contas com Cota Baixa",
         "quota_sufficient": "Cota Suficiente",

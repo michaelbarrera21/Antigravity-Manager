@@ -67,7 +67,7 @@
         "refreshing": "刷新中...",
         "total_accounts": "总账号数",
         "avg_gemini": "Gemini 平均配额",
-        "avg_gemini_image": "Gemini 绘图平均配额",
+        "avg_gemini_flash": "Gemini Flash 平均配额",
         "avg_claude": "Claude 平均配额",
         "low_quota_accounts": "低配额账号",
         "quota_sufficient": "✓ 配额充足",

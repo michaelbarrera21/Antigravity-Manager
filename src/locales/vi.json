@@ -65,7 +65,7 @@
         "refreshing": "Đang làm mới...",
         "total_accounts": "Tổng số Tài khoản",
         "avg_gemini": "Hạn mức Gemini TB",
-        "avg_gemini_image": "Hạn mức Ảnh Gemini TB",
+        "avg_gemini_flash": "Hạn mức Gemini Flash TB",
         "avg_claude": "Hạn mức Claude TB",
         "low_quota_accounts": "Tài khoản Hạn mức Thấp",
         "quota_sufficient": "Hạn mức Tốt",

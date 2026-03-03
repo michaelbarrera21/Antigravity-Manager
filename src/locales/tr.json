@@ -64,7 +64,7 @@
         "refreshing": "Yenileniyor...",
         "total_accounts": "Toplam Hesap",
         "avg_gemini": "Ort. Gemini Kotası",
-        "avg_gemini_image": "Ort. Gemini Görsel Kotası",
+        "avg_gemini_flash": "Ort. Gemini Flash Kotası",
         "avg_claude": "Ort. Claude Kotası",
         "low_quota_accounts": "Düşük Kotalı Hesaplar",
         "quota_sufficient": "Kota Yeterli",

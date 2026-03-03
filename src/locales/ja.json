@@ -67,7 +67,7 @@
         "refreshing": "更新中...",
         "total_accounts": "合計アカウント数",
         "avg_gemini": "平均Geminiクォータ",
-        "avg_gemini_image": "平均Gemini画像クォータ",
+        "avg_gemini_flash": "平均Gemini Flashクォータ",
         "avg_claude": "平均Claudeクォータ",
         "low_quota_accounts": "クォータ不足のアカウント",
         "quota_sufficient": "クォータ残量あり",

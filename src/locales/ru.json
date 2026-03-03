@@ -67,7 +67,7 @@
         "refreshing": "Обновление...",
         "total_accounts": "Всего аккаунтов",
         "avg_gemini": "Средняя квота Gemini",
-        "avg_gemini_image": "Средняя квота изображений Gemini",
+        "avg_gemini_flash": "Средняя квота Gemini Flash",
         "avg_claude": "Средняя квота Claude",
         "low_quota_accounts": "Аккаунты с низкой квотой",
         "quota_sufficient": "Квота достаточная",

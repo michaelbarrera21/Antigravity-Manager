@@ -159,13 +159,13 @@ function InstanceCard({ instance, isRefreshing, onRefresh }: InstanceCardProps) 
                     {/* 配额条 */}
                     <div className="space-y-1.5">
                         <QuotaBar
-                            label="Gemini Pro"
-                            model={account.quota?.models.find(m => m.name === 'gemini-3-pro-high')}
+                            label="G3 Pro"
+                            model={account.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3.1-pro-high')}
                             color="emerald"
                         />
                         <QuotaBar
-                            label="Claude 4.5"
-                            model={account.quota?.models.find(m => m.name === 'claude-sonnet-4-5-thinking')}
+                            label="Claude 4.6"
+                            model={account.quota?.models.find(m => m.name.toLowerCase() === 'claude-sonnet-4-6')}
                             color="cyan"
                         />
                     </div>

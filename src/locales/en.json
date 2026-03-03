@@ -67,7 +67,7 @@
         "refreshing": "Refreshing...",
         "total_accounts": "Total Accounts",
         "avg_gemini": "Avg. Gemini Quota",
-        "avg_gemini_image": "Avg. Gemini Image Quota",
+        "avg_gemini_flash": "Avg. Gemini Flash Quota",
         "avg_claude": "Avg. Claude Quota",
         "low_quota_accounts": "Low Quota Accounts",
         "quota_sufficient": "Quota Sufficient",
