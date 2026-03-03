@@ -148,7 +148,7 @@ function getTimeColorClass(resetTime: string | undefined): string {
 const MODEL_GROUPS = {
     CLAUDE: [
         'claude-sonnet-4-6',
-        'claude-opus-4-5-thinking'
+        'claude-opus-4-6-thinking'
     ],
     GEMINI_PRO: [
         'gemini-3.1-pro-high',

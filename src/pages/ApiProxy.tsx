@@ -339,8 +339,8 @@ export default function ApiProxy() {
 
             // Claude (通配符)
             "claude-3-5-sonnet-*": "claude-sonnet-4-6",
-            "claude-3-opus-*": "claude-opus-4-5-thinking",
-            "claude-opus-4-*": "claude-opus-4-5-thinking",
+            "claude-3-opus-*": "claude-opus-4-6-thinking",
+            "claude-opus-4-*": "claude-opus-4-6-thinking",
             "claude-haiku-*": "gemini-2.5-flash-lite",
             "claude-3-haiku-*": "gemini-2.5-flash-lite",
         };
