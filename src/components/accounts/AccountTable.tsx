@@ -147,12 +147,11 @@ function getTimeColorClass(resetTime: string | undefined): string {
 
 const MODEL_GROUPS = {
     CLAUDE: [
-        'claude-sonnet-4-5',
-        'claude-sonnet-4-5-thinking',
+        'claude-sonnet-4-6',
         'claude-opus-4-5-thinking'
     ],
     GEMINI_PRO: [
-        'gemini-3-pro-high',
+        'gemini-3.1-pro-high',
         'gemini-3-pro-low',
         'gemini-3-pro-preview'
     ],

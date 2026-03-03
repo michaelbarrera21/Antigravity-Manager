@@ -47,7 +47,7 @@ function Settings() {
             monitored_models: []
         },
         pinned_quota_models: {
-            models: ['gemini-3-pro-high', 'gemini-3-flash', 'gemini-3-pro-image', 'claude-sonnet-4-5-thinking']
+            models: ['gemini-3.1-pro-high', 'gemini-3-flash', 'claude-sonnet-4-6']
         }
     });
 

@@ -13,9 +13,8 @@ const SmartWarmup: React.FC<SmartWarmupProps> = ({ config, onChange }) => {
 
     const warmupModelsOptions = [
         { id: 'gemini-3-flash', label: 'Gemini 3 Flash' },
-        { id: 'gemini-3-pro-high', label: 'Gemini 3 Pro High' },
-        { id: 'claude-sonnet-4-5', label: 'Claude 4.5 Sonnet' },
-        { id: 'gemini-3-pro-image', label: 'Gemini 3 Pro Image' }
+        { id: 'gemini-3.1-pro-high', label: 'Gemini 3.1 Pro High' },
+        { id: 'claude-sonnet-4-6', label: 'Claude 4.6 Sonnet' }
     ];
 
     const handleEnabledChange = (enabled: boolean) => {

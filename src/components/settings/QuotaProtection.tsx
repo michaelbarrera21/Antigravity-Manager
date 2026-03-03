@@ -12,9 +12,9 @@ const QuotaProtection = ({ config, onChange }: QuotaProtectionProps) => {
 
     const handleEnabledChange = (enabled: boolean) => {
         let newConfig = { ...config, enabled };
-        // 如果开启保护且勾选列表为空，则默认勾选 claude-sonnet-4-5
+        // 如果开启保护且勾选列表为空，则默认勾选 claude-sonnet-4-6
         if (enabled && (!config.monitored_models || config.monitored_models.length === 0)) {
-            newConfig.monitored_models = ['claude-sonnet-4-5'];
+            newConfig.monitored_models = ['claude-sonnet-4-6'];
         }
         onChange(newConfig);
     };

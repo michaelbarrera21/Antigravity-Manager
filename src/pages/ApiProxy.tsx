@@ -145,7 +145,7 @@ export default function ApiProxy() {
     const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState<string | null>(null);
     const [selectedProtocol, setSelectedProtocol] = useState<'openai' | 'anthropic' | 'gemini'>('openai');
-    const [selectedModelId, setSelectedModelId] = useState('gemini-3-flash');
+    const [selectedModelId, setSelectedModelId] = useState('gemini-3.1-pro-high');
     const [zaiAvailableModels, setZaiAvailableModels] = useState<string[]>([]);
     const [zaiModelsLoading, setZaiModelsLoading] = useState(false);
     const [, setZaiModelsError] = useState<string | null>(null);
@@ -331,14 +331,14 @@ export default function ApiProxy() {
 
         const presets: Record<string, string> = {
             // OpenAI (通配符)
-            "gpt-4*": "gemini-3-pro-high",
+            "gpt-4*": "gemini-3.1-pro-high",
             "gpt-4o*": "gemini-3-flash",
             "gpt-3.5*": "gemini-2.5-flash",
-            "o1-*": "gemini-3-pro-high",
-            "o3-*": "gemini-3-pro-high",
+            "o1-*": "gemini-3.1-pro-high",
+            "o3-*": "gemini-3.1-pro-high",
 
             // Claude (通配符)
-            "claude-3-5-sonnet-*": "claude-sonnet-4-5",
+            "claude-3-5-sonnet-*": "claude-sonnet-4-6",
             "claude-3-opus-*": "claude-opus-4-5-thinking",
             "claude-opus-4-*": "claude-opus-4-5-thinking",
             "claude-haiku-*": "gemini-2.5-flash-lite",

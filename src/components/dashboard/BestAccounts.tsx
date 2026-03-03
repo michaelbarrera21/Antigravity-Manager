@@ -15,7 +15,7 @@ function BestAccounts({ accounts, currentAccountId, onSwitch }: BestAccountsProp
     const geminiSorted = accounts
         .filter(a => a.id !== currentAccountId)
         .map(a => {
-            const proQuota = a.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3-pro-high')?.percentage || 0;
+            const proQuota = a.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3.1-pro-high')?.percentage || 0;
             const flashQuota = a.quota?.models.find(m => m.name.toLowerCase() === 'gemini-3-flash')?.percentage || 0;
             // 综合评分：Pro 权重更高 (70%)，Flash 权重 30%
             return {
