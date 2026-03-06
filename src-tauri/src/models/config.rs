@@ -23,6 +23,8 @@ pub struct AppConfig {
     pub quota_protection: QuotaProtectionConfig, // [NEW] Quota protection configuration
     #[serde(default)]
     pub pinned_quota_models: PinnedQuotaModelsConfig, // [NEW] Pinned quota models list
+    #[serde(default)]
+    pub mitm: crate::mitm::config::MitmConfig, // [NEW] MITM Proxy Config
 }
 
 /// Scheduled warmup configuration
@@ -145,6 +147,7 @@ impl AppConfig {
             scheduled_warmup: ScheduledWarmupConfig::default(),
             quota_protection: QuotaProtectionConfig::default(),
             pinned_quota_models: PinnedQuotaModelsConfig::default(),
+            mitm: crate::mitm::config::MitmConfig::default(),
         }
     }
 }

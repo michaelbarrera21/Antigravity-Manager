@@ -1,5 +1,4 @@
 use crate::modules::process;
-use std::fs;
 use std::path::PathBuf;
 
 /// Antigravity 版本信息
@@ -51,7 +50,7 @@ fn get_version_macos(exe_path: &PathBuf) -> Result<AntigravityVersion, String> {
         return Err(format!("Info.plist not found: {:?}", info_plist_path));
     }
     
-    let content = fs::read(&info_plist_path)
+    let content = std::fs::read(&info_plist_path)
         .map_err(|e| format!("Failed to read Info.plist: {}", e))?;
     
     let plist: Value = plist::from_bytes(&content)
@@ -137,7 +136,7 @@ fn get_version_linux(exe_path: &PathBuf) -> Result<AntigravityVersion, String> {
     if let Some(parent) = exe_path.parent() {
         let package_json = parent.join("resources/app/package.json");
         if package_json.exists() {
-            if let Ok(content) = fs::read_to_string(&package_json) {
+            if let Ok(content) = std::fs::read_to_string(&package_json) {
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
                     if let Some(version) = json.get("version").and_then(|v| v.as_str()) {
                         return Ok(AntigravityVersion {

@@ -15,8 +15,9 @@ function Navbar() {
         { path: '/', label: t('nav.dashboard') },
         { path: '/accounts', label: t('nav.accounts') },
         { path: '/instances', label: t('nav.instances') },
-        { path: '/api-proxy', label: t('nav.proxy') },
-        { path: '/monitor', label: t('nav.call_records') },
+        { path: '/api-proxy', label: t('nav.proxy', '代理设置') },
+        { path: '/mitm', label: t('nav.mitm', 'MITM 监控') },
+        { path: '/monitor', label: t('nav.call_records', '流量日志') },
         { path: '/token-stats', label: t('nav.token_stats', 'Token 统计') },
         { path: '/settings', label: t('nav.settings') },
     ];

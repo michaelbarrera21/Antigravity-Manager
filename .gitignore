@@ -30,6 +30,13 @@ src-tauri/target/
 src-tauri/gen/
 src-tauri/.env
 
+# Rust test/debug artifacts
+src-tauri/*.exe
+src-tauri/*.pdb
+src-tauri/*.pem
+src-tauri/err.txt
+src-tauri/src/tmp_test.rs
+
 # Environment
 .env
 .env.*
@@ -48,3 +55,6 @@ DOCKER_DEPLOYMENT.md
 
 # EnhanceChatOpen
 .EnhanceChatopen/
+
+# EnhanceChatOpen
+.windsurfrules

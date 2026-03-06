@@ -39,10 +39,11 @@
     },
     "nav": {
         "dashboard": "仪表盘",
-        "accounts": "账号管理",
+        "accounts": "账号",
         "instances": "实例",
-        "proxy": "API 反代",
-        "call_records": "流量日志",
+        "proxy": "API",
+        "call_records": "流量",
+        "mitm": "MITM",
         "token_stats": "Token 统计",
         "settings": "设置",
         "theme_to_dark": "切换到深色模式",
@@ -602,6 +603,9 @@
             "python_openai_image": "from openai import OpenAI\n\nclient = OpenAI(\n    base_url=\"{{baseUrl}}\",\n    api_key=\"{{apiKey}}\"\n)\n\nresponse = client.chat.completions.create(\n    model=\"{{modelId}}\",\n    # 方式 1: 使用 size 参数 (推荐)\n    # 支持: \"1024x1024\" (1:1), \"1280x720\" (16:9), \"720x1280\" (9:16), \"1216x896\" (4:3)\n    extra_body={ \"size\": \"1024x1024\" },\n\n    # 方式 2: 使用模型后缀\n    # 例如: gemini-3-pro-image-16-9, gemini-3-pro-image-4-3\n    # model=\"gemini-3-pro-image-16-9\",\n    messages=[{\n        \"role\": \"user\",\n        \"content\": \"画一个未来城市\"\n    }]\n)\n\nprint(response.choices[0].message.content)",
             "python_openai": "from openai import OpenAI\n\nclient = OpenAI(\n    base_url=\"{{baseUrl}}\",\n    api_key=\"{{apiKey}}\"\n)\n\nresponse = client.chat.completions.create(\n    model=\"{{modelId}}\",\n    messages=[{\"role\": \"user\", \"content\": \"Hello\"}]\n)\n\nprint(response.choices[0].message.content)"
         },
+        "examples": {
+            "title": "使用示例"
+        },
         "dialog": {
             "confirm_regenerate": "确定要生成新的 API Key 吗？旧的 Key 将立即失效。",
             "operate_failed": "操作失败: {{error}}",
@@ -658,8 +662,6 @@
             "apply_presets": "应用预设映射",
             "presets_applied": "预设映射已应用",
             "custom_mappings": "自定义映射 (Custom Mappings)",
-            "original_id": "原始模型 ID",
-            "route_to": "路由目标",
             "group_title": "模型家族分组 (Series Groups)",
             "gemini3_group_label": "Gemini 3 (推荐)",
             "gemini3_option_high": "gemini-3-pro-high (高质量)",
@@ -703,11 +705,10 @@
             "no_custom_mapping": "暂无自定义精确映射",
             "gemini3_only_warning": "⚠️ 仅支持 Gemini 3 系列",
             "default_suffix": "（默认）",
+            "original_id": "原始模型 ID",
+            "route_to": "路由目标",
             "select_target_model": "选择目标模型",
             "original_placeholder": "原始名 (如 gpt-4 或 gpt-4*)"
-        },
-        "examples": {
-            "title": "使用示例"
         },
         "multi_protocol": {
             "title": "多协议支持 (Multi-Protocol Support)",
@@ -885,5 +886,62 @@
         "no_active_account": "未激活账号",
         "tip_title": "提示",
         "tip_content": "每个实例使用独立的数据目录，可同时运行多个账号。"
+    },
+    "mitm": {
+        "title": "MITM 代理监控",
+        "subtitle": "监控 Antigravity 内部 API 调用",
+        "config": {
+            "port": "监听端口",
+            "port_tooltip": "MITM 代理监听的本地端口",
+            "domains": "目标域名",
+            "domains_tooltip": "需要拦截的目标域名列表，多个域名用逗号分隔",
+            "root_ca": "Root CA 配置",
+            "cert_path": "证书路径 (PEM)",
+            "key_path": "私钥路径 (PEM)"
+        },
+        "status": {
+            "valid": "有效",
+            "invalid": "无效"
+        },
+        "stats": {
+            "port": "端口",
+            "certs": "证书缓存",
+            "requests": "请求数",
+            "speed": "平均速度",
+            "tokens": "Token 统计",
+            "input": "输入",
+            "output": "输出",
+            "by_model": "按模型统计"
+        },
+        "monitoring": {
+            "enabled": "监控已启用",
+            "disabled": "监控已禁用"
+        },
+        "action": {
+            "validate_ca": "验证 Root CA",
+            "clear_stats": "清除统计",
+            "clear_cache": "清除证书缓存",
+            "select_file": "选择文件"
+        },
+        "error": {
+            "no_ca_path": "请先设置 Root CA 证书和私钥路径",
+            "ca_invalid": "Root CA 验证失败"
+        },
+        "success": {
+            "started": "MITM 代理已启动",
+            "stopped": "MITM 代理已停止",
+            "ca_valid": "Root CA 验证成功"
+        },
+        "hint": {
+            "title": "使用说明",
+            "step1": "准备 ECDSA Root CA 证书和私钥 (仅支持 ECDSA P-256/P-384)",
+            "step2": "将 Root CA 证书安装到系统受信任的根证书颁发机构",
+            "step3": "配置 Antigravity 使用代理地址: 127.0.0.1:{{port}}",
+            "step4": "启动 MITM 代理后，所有目标域名的 HTTPS 请求将被拦截和监控",
+            "cert_install": "证书安装命令:",
+            "windows_cmd": "Windows (管理员权限):",
+            "macos_cmd": "macOS:",
+            "linux_cmd": "Linux:"
+        }
     }
 }

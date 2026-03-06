@@ -1,6 +1,5 @@
 {
     "common": {
-        "empty": "Trống",
         "loading": "Đang tải...",
         "load_more": "Tải thêm",
         "add": "Thêm mới",
@@ -41,16 +40,20 @@
     "nav": {
         "dashboard": "Tổng quan",
         "accounts": "Tài khoản",
+        "instances": "Instances",
         "proxy": "API Proxy",
-        "token_stats": "Thống kê",
         "call_records": "Nhật ký lưu lượng",
+        "mitm": "MITM",
+        "token_stats": "Thống kê",
         "settings": "Cài đặt",
         "theme_to_dark": "Chuyển sang Chế độ Tối",
         "theme_to_light": "Chuyển sang Chế độ Sáng",
         "switch_to_english": "Chuyển sang Tiếng Anh",
         "switch_to_chinese": "Chuyển sang Tiếng Trung",
+        "switch_to_traditional_chinese": "Switch to Traditional Chinese",
         "switch_to_english_short": "EN",
         "switch_to_chinese_short": "ZH",
+        "switch_to_traditional_chinese_short": "TW",
         "switch_to_japanese": "Chuyển sang Tiếng Nhật",
         "switch_to_japanese_short": "JA",
         "switch_to_turkish": "Chuyển sang Tiếng Thổ Nhĩ Kỳ",
@@ -85,6 +88,11 @@
         "export_data": "Xuất Dữ liệu",
         "for_gemini": "Cho Gemini",
         "for_claude": "Cho Claude",
+        "instance_accounts": "Instance Accounts",
+        "no_running_instance": "No running instance",
+        "no_instance": "No instances",
+        "running": "running",
+        "no_account_selected": "No account selected",
         "toast": {
             "switch_success": "Chuyển tài khoản thành công!",
             "switch_error": "Chuyển tài khoản thất bại",
@@ -99,6 +107,11 @@
         "search_placeholder": "Tìm kiếm email...",
         "all": "Tất cả",
         "available": "Khả dụng",
+        "instance": {
+            "ask_start": "Instance is not running. Start it now?",
+            "start_title": "Start Instance",
+            "started": "Instance started"
+        },
         "low_quota": "Hạn mức thấp",
         "ultra": "ULTRA",
         "pro": "PRO",
@@ -107,6 +120,11 @@
         "refresh_all": "Làm mới Tất cả",
         "refresh_selected": "Làm mới ({{count}})",
         "export_selected": "Xuất ({{count}})",
+        "import_json": "Import",
+        "import_success": "Successfully imported {{count}} accounts",
+        "import_partial": "Import completed: {{success}} succeeded, {{fail}} failed",
+        "import_fail": "Import failed: {{error}}",
+        "import_invalid_format": "Invalid JSON format, please ensure the file contains email and refresh_token fields",
         "delete_selected": "Xóa ({{count}})",
         "current": "Hiện tại",
         "current_badge": "Đang dùng",
@@ -128,6 +146,7 @@
         "last_used": "Dùng lần cuối",
         "reset_time": "Thời gian reset",
         "switch_to": "Chuyển sang tài khoản này",
+        "switch_hot": "Hot Switch (No Restart)",
         "actions": "Thao tác",
         "device_fingerprint": "Vân Tay Thiết Bị",
         "device_fingerprint_dialog": {
@@ -165,8 +184,7 @@
             "restored": "Đã khôi phục",
             "deleted": "Đã xóa",
             "directory_opened": "Đã mở thư mục lưu trữ",
-            "original_fingerprint_not_found": "Không tìm thấy vân tay gốc",
-            "storage_json_not_found": "Không tìm thấy storage.json, vui lòng đảm bảo Antigravity đã được chạy để tạo tệp cấu hình"
+            "original_fingerprint_not_found": "Không tìm thấy vân tay gốc"
         },
         "warmup_all": "Làm nóng (Warmup) Tất cả",
         "warmup_selected": "Làm nóng ({{count}})",
@@ -267,6 +285,7 @@
             "general": "Chung",
             "account": "Tài khoản",
             "proxy": "Cài đặt Proxy",
+            "instances": "Instances",
             "advanced": "Nâng cao",
             "about": "Giới thiệu"
         },
@@ -383,6 +402,36 @@
             "support_alipay": "Alipay",
             "support_wechat": "WeChat Pay",
             "support_buymeacoffee": "Buy Me a Coffee"
+        },
+        "instances": {
+            "title": "Instance Manager",
+            "description": "Manage multiple independent Antigravity instances, each can bind different accounts",
+            "create": "Create Instance",
+            "create_new": "Create New Instance",
+            "name": "Instance Name",
+            "name_placeholder": "e.g., Work Account, Personal Project",
+            "data_dir": "Data Directory",
+            "data_dir_placeholder": "Select --user-data-dir path",
+            "data_dir_hint": "This path will be used as the --user-data-dir parameter. Select an empty directory or an existing Antigravity data directory",
+            "select_data_dir": "Select Instance Data Directory",
+            "create_validation_error": "Please enter instance name and data directory",
+            "created": "Instance created successfully",
+            "deleted": "Instance deleted",
+            "updated": "Instance updated",
+            "started": "Instance started",
+            "stopped": "Instance stopped",
+            "default": "Default",
+            "cannot_delete_default": "Cannot delete default instance",
+            "start": "Start Instance",
+            "stop": "Stop Instance",
+            "accounts_count": "{{count}} accounts",
+            "empty": "No instances yet, click the button above to create one",
+            "tip_title": "Usage Tips",
+            "tip_content": "When switching accounts, the system will only restart the instance that the account belongs to. Other instances will keep running. To run multiple instances simultaneously, ensure they use different data directories.",
+            "bound_accounts": "Bound Accounts",
+            "move_account": "Move to another instance",
+            "move_to": "Move to:",
+            "account_moved": "Account moved to new instance"
         }
     },
     "tray": {
@@ -424,10 +473,10 @@
             "api_key": "API Key",
             "api_key_tooltip": "Khóa bí mật dùng chung (Shared secret) để clients xác thực. Bấm tạo mới sẽ làm khóa cũ mất hiệu lực ngay lập tức.",
             "btn_regenerate": "Tạo mới Key",
-            "btn_copy": "Sao chép",
-            "btn_copied": "Đã chép",
             "btn_edit": "Chỉnh sửa",
             "btn_save": "Lưu",
+            "btn_copy": "Sao chép",
+            "btn_copied": "Đã chép",
             "warning_key": "Lưu ý: Giữ API key của bạn an toàn. Đừng chia sẻ nó.",
             "api_key_invalid": "Định dạng khóa API không hợp lệ, phải bắt đầu bằng sk- và có ít nhất 10 ký tự",
             "api_key_updated": "Đã cập nhật khóa API",
@@ -530,16 +579,12 @@
                 },
                 "modes_desc": {
                     "CacheFirst": "Gắn session với tài khoản, chờ đợi chính xác nếu bị giới hạn (Tối đa hóa Prompt Cache hits).",
+                    "Balance": "Binds session, auto-switches to available account if limited (Balanced cache & availability).",
                     "PerformanceFirst": "Không gắn session, xoay vòng thuần túy (Tốt nhất cho tải cao/đồng thời). "
                 },
                 "max_wait": "Chờ Tối đa (giây)",
                 "max_wait_tooltip": "Chỉ dùng trong chế độ 'Ưu tiên Cache': chờ thay vì đổi tài khoản nếu thời gian reset rate limit thấp hơn giá trị này.",
                 "clear_bindings": "Xóa liên kết phiên",
-                "fixed_account": "Chế độ Tài khoản Cố định",
-                "fixed_account_tooltip": "Khi được bật, tất cả các yêu cầu API sẽ chỉ sử dụng tài khoản đã chọn thay vì luân phiên giữa các tài khoản.",
-                "round_robin_set": "Chế độ luân phiên đã bật",
-                "fixed_account_set": "Chế độ tài khoản cố định đã bật",
-                "account_changed": "Tài khoản đã thay đổi thành: {{email}}",
                 "clear_bindings_tooltip": "Ngắt ngay lập tức tất cả các mối quan hệ liên kết giữa phiên và tài khoản, buộc lần yêu cầu tiếp theo phải phân bổ lại tài khoản."
             },
             "experimental": {
@@ -679,6 +724,13 @@
             "click_tip": "👆 Click vào model để cập nhật mã mẫu",
             "copy_base": "Sao chép Base"
         },
+        "supported_models": {
+            "title": "Model Hỗ trợ & Tích hợp",
+            "model_name": "Tên Model",
+            "model_id": "ID Model",
+            "description": "Mô tả",
+            "action": "Thao tác"
+        },
         "cli_sync": {
             "title": "Đồng bộ CLI",
             "subtitle": "Đồng bộ URL API và Key hiện tại với các công cụ AI CLI của bạn",
@@ -695,26 +747,18 @@
             "btn_view": "Xem cấu hình",
             "btn_restore": "Khôi phục",
             "btn_restore_backup": "Khôi phục bản sao lưu",
-            "restore_backup_confirm": "Tìm thấy cấu hình sao lưu. Bạn có chắc chắn muốn khôi phục không?",
-            "sync_confirm_title": "Xác nhận đồng bộ",
-            "sync_confirm_message": "Đã sẵn sàng đồng bộ cấu hình {{name}}. ⚠️ Cảnh báo: Thao tác này sẽ ghi đè các tệp cấu hình cục bộ hiện có của bạn (ví dụ: token đăng nhập, API Key). Bạn có chắc chắn muốn tiếp tục không?",
             "restore_confirm": "Bạn có chắc muốn khôi phục cấu hình {{name}} về mặc định không?",
+            "restore_backup_confirm": "Tìm thấy cấu hình sao lưu. Bạn có chắc chắn muốn khôi phục không?",
             "modal": {
                 "view_title": "Nội dung cấu hình {{name}}",
                 "copy_success": "Đã sao chép vào bộ nhớ tạm"
             },
             "toast": {
-                "config_missing": "Vui lòng tạo API Key và khởi chạy dịch vụ trước",
                 "sync_success": "Thành công! {{name}} đã sẵn sàng.",
                 "sync_error": "Lỗi đồng bộ {{name}}: {{error}}"
-            }
-        },
-        "supported_models": {
-            "title": "Model Hỗ trợ & Tích hợp",
-            "model_name": "Tên Model",
-            "model_id": "ID Model",
-            "description": "Mô tả",
-            "action": "Thao tác"
+            },
+            "sync_confirm_title": "Xác nhận đồng bộ",
+            "sync_confirm_message": "Đã sẵn sàng đồng bộ cấu hình {{name}}. ⚠️ Cảnh báo: Thao tác này sẽ ghi đè các tệp cấu hình cục bộ hiện có của bạn (ví dụ: token đăng nhập, API Key). Bạn có chắc chắn muốn tiếp tục không?"
         }
     },
     "monitor": {
@@ -758,34 +802,14 @@
             "request_payload": "Payload Yêu cầu",
             "response_payload": "Payload Phản hồi",
             "duration": "Thời gian xử lý",
-            "token_stats": "Token Stats",
             "tokens": "Tokens (I/O)",
             "time": "Thời điểm",
             "model": "Model",
-            "id": "Request ID",
-            "protocol": "Giao thức",
             "mapped_model": "Model Đã Ánh xạ",
+            "protocol": "Giao thức",
             "account_used": "Tài khoản Sử dụng",
+            "id": "Request ID",
             "payload_empty": "Không có Payload"
-        },
-        "token_stats": {
-            "title": "Token Usage Stats",
-            "hourly": "Hourly",
-            "daily": "Daily",
-            "weekly": "Weekly",
-            "total_tokens": "Total Tokens",
-            "input_tokens": "Input Tokens",
-            "output_tokens": "Output Tokens",
-            "accounts_used": "Active Accounts",
-            "usage_trend": "Usage Trend",
-            "by_account": "Stats by Account",
-            "account_details": "Account Details",
-            "account": "Account",
-            "requests": "Requests",
-            "input": "Input",
-            "output": "Output",
-            "total": "Total",
-            "no_data": "No Data"
         },
         "dialog": {
             "clear_title": "Xóa Logs Proxy",
@@ -824,6 +848,15 @@
         "percentage": "Tỷ lệ",
         "no_data": "Không có dữ liệu"
     },
+    "errors": {
+        "stream": {
+            "timeout_error": "Request timeout, please check your network connection",
+            "connection_error": "Connection failed, please check your network or proxy settings",
+            "decode_error": "Network unstable, data transmission interrupted. Try: 1) Check network 2) Switch proxy 3) Retry",
+            "stream_error": "Stream transmission error, please retry later",
+            "unknown_error": "Unknown error occurred, please retry later"
+        }
+    },
     "instances": {
         "title": "Quản lý Instance",
         "description": "Quản lý nhiều instance Antigravity",
@@ -853,5 +886,62 @@
         "no_active_account": "Không có tài khoản hoạt động",
         "tip_title": "Mẹo",
         "tip_content": "Mỗi instance sử dụng thư mục dữ liệu riêng và có thể chạy nhiều tài khoản cùng lúc."
+    },
+    "mitm": {
+        "title": "MITM Proxy Monitor",
+        "subtitle": "Monitor Antigravity internal API calls",
+        "config": {
+            "port": "Listen Port",
+            "port_tooltip": "Local port for MITM proxy to listen on",
+            "domains": "Target Domains",
+            "domains_tooltip": "Target domains to intercept, separated by comma",
+            "root_ca": "Root CA Configuration",
+            "cert_path": "Certificate Path (PEM)",
+            "key_path": "Private Key Path (PEM)"
+        },
+        "status": {
+            "valid": "Valid",
+            "invalid": "Invalid"
+        },
+        "stats": {
+            "port": "Port",
+            "certs": "Cert Cache",
+            "requests": "Requests",
+            "speed": "Avg Speed",
+            "tokens": "Token Stats",
+            "input": "Input",
+            "output": "Output",
+            "by_model": "Stats by Model"
+        },
+        "monitoring": {
+            "enabled": "Monitoring Enabled",
+            "disabled": "Monitoring Disabled"
+        },
+        "action": {
+            "validate_ca": "Validate Root CA",
+            "clear_stats": "Clear Stats",
+            "clear_cache": "Clear Cert Cache",
+            "select_file": "Select File"
+        },
+        "error": {
+            "no_ca_path": "Please set Root CA certificate and key paths first",
+            "ca_invalid": "Root CA validation failed"
+        },
+        "success": {
+            "started": "MITM proxy started",
+            "stopped": "MITM proxy stopped",
+            "ca_valid": "Root CA validation successful"
+        },
+        "hint": {
+            "title": "Usage Instructions",
+            "step1": "Prepare ECDSA Root CA certificate and private key (only ECDSA P-256/P-384 supported)",
+            "step2": "Install Root CA certificate to system trusted root CA store",
+            "step3": "Configure Antigravity to use proxy address: 127.0.0.1:8081",
+            "step4": "After starting MITM proxy, all HTTPS requests to target domains will be intercepted and monitored",
+            "cert_install": "Certificate Installation Commands:",
+            "windows_cmd": "Windows (Admin Privileges):",
+            "macos_cmd": "macOS:",
+            "linux_cmd": "Linux:"
+        }
     }
 }

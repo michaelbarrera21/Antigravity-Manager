@@ -40,8 +40,11 @@
     "nav": {
         "dashboard": "Painel",
         "accounts": "Contas",
+        "instances": "Instances",
         "proxy": "Proxy da API",
         "call_records": "Registros de Tráfego",
+        "mitm": "MITM",
+        "token_stats": "Token Stats",
         "settings": "Configurações",
         "theme_to_dark": "Alternar para Modo Escuro",
         "theme_to_light": "Alternar para Modo Claro",
@@ -57,10 +60,10 @@
         "switch_to_turkish_short": "TR",
         "switch_to_vietnamese": "Alternar para Vietnamita",
         "switch_to_vietnamese_short": "VI",
-        "switch_to_portuguese": "Alternar para Português",
-        "switch_to_portuguese_short": "PT",
         "switch_to_russian": "Alternar para Russo",
-        "switch_to_russian_short": "RU"
+        "switch_to_russian_short": "RU",
+        "switch_to_portuguese": "Alternar para Português",
+        "switch_to_portuguese_short": "PT"
     },
     "dashboard": {
         "hello": "Olá, Usuário 👋",
@@ -85,6 +88,11 @@
         "export_data": "Exportar Dados",
         "for_gemini": "Para Gemini",
         "for_claude": "Para Claude",
+        "instance_accounts": "Instance Accounts",
+        "no_running_instance": "No running instance",
+        "no_instance": "No instances",
+        "running": "running",
+        "no_account_selected": "No account selected",
         "toast": {
             "switch_success": "Alternância bem-sucedida!",
             "switch_error": "Falha ao alternar conta",
@@ -99,6 +107,11 @@
         "search_placeholder": "Pesquisar email...",
         "all": "Todas",
         "available": "Disponíveis",
+        "instance": {
+            "ask_start": "Instance is not running. Start it now?",
+            "start_title": "Start Instance",
+            "started": "Instance started"
+        },
         "low_quota": "Cota Baixa",
         "ultra": "ULTRA",
         "pro": "PRO",
@@ -107,6 +120,11 @@
         "refresh_all": "Atualizar Todas",
         "refresh_selected": "Atualizar ({{count}})",
         "export_selected": "Exportar ({{count}})",
+        "import_json": "Import",
+        "import_success": "Successfully imported {{count}} accounts",
+        "import_partial": "Import completed: {{success}} succeeded, {{fail}} failed",
+        "import_fail": "Import failed: {{error}}",
+        "import_invalid_format": "Invalid JSON format, please ensure the file contains email and refresh_token fields",
         "delete_selected": "Excluir ({{count}})",
         "current": "Atual",
         "current_badge": "Atual",
@@ -128,6 +146,7 @@
         "last_used": "Último Uso",
         "reset_time": "Tempo de Reset",
         "switch_to": "Alternar para esta conta",
+        "switch_hot": "Hot Switch (No Restart)",
         "actions": "Ações",
         "device_fingerprint": "Impressão Digital do Dispositivo",
         "device_fingerprint_dialog": {
@@ -266,6 +285,7 @@
             "general": "Geral",
             "account": "Conta",
             "proxy": "Configurações do Proxy",
+            "instances": "Instances",
             "advanced": "Avançado",
             "about": "Sobre"
         },
@@ -382,6 +402,36 @@
             "support_alipay": "Alipay",
             "support_wechat": "WeChat Pay",
             "support_buymeacoffee": "Buy Me a Coffee"
+        },
+        "instances": {
+            "title": "Instance Manager",
+            "description": "Manage multiple independent Antigravity instances, each can bind different accounts",
+            "create": "Create Instance",
+            "create_new": "Create New Instance",
+            "name": "Instance Name",
+            "name_placeholder": "e.g., Work Account, Personal Project",
+            "data_dir": "Data Directory",
+            "data_dir_placeholder": "Select --user-data-dir path",
+            "data_dir_hint": "This path will be used as the --user-data-dir parameter. Select an empty directory or an existing Antigravity data directory",
+            "select_data_dir": "Select Instance Data Directory",
+            "create_validation_error": "Please enter instance name and data directory",
+            "created": "Instance created successfully",
+            "deleted": "Instance deleted",
+            "updated": "Instance updated",
+            "started": "Instance started",
+            "stopped": "Instance stopped",
+            "default": "Default",
+            "cannot_delete_default": "Cannot delete default instance",
+            "start": "Start Instance",
+            "stop": "Stop Instance",
+            "accounts_count": "{{count}} accounts",
+            "empty": "No instances yet, click the button above to create one",
+            "tip_title": "Usage Tips",
+            "tip_content": "When switching accounts, the system will only restart the instance that the account belongs to. Other instances will keep running. To run multiple instances simultaneously, ensure they use different data directories.",
+            "bound_accounts": "Bound Accounts",
+            "move_account": "Move to another instance",
+            "move_to": "Move to:",
+            "account_moved": "Account moved to new instance"
         }
     },
     "tray": {
@@ -674,6 +724,13 @@
             "click_tip": "👆 Clique no modelo para atualizar o código",
             "copy_base": "Copiar Base"
         },
+        "supported_models": {
+            "title": "Modelos Suportados e Integração",
+            "model_name": "Nome do Modelo",
+            "model_id": "ID do Modelo",
+            "description": "Descrição",
+            "action": "Ação"
+        },
         "cli_sync": {
             "title": "Sincronização de CLI",
             "subtitle": "Sincronize a URL e chave da API com suas ferramentas de CLI de IA",
@@ -690,26 +747,18 @@
             "btn_view": "Ver Config",
             "btn_restore": "Restaurar Padrão",
             "btn_restore_backup": "Restaurar Backup",
-            "restore_backup_confirm": "Configuração de backup encontrada. Tem certeza de que deseja restaurá-la?",
-            "sync_confirm_title": "Confirmação de Sincronização",
-            "sync_confirm_message": "Pronto para sincronizar a configuração do {{name}}. ⚠️ Aviso: Isso substituirá seus arquivos de configuração local existentes (como tokens de login, chaves de API). Tem certeza de que deseja continuar?",
             "restore_confirm": "Tem certeza que deseja restaurar a config de {{name}} para o padrão?",
+            "restore_backup_confirm": "Configuração de backup encontrada. Tem certeza de que deseja restaurá-la?",
             "modal": {
                 "view_title": "Conteúdo do arquivo {{name}}",
                 "copy_success": "Copiado para a área de transferência"
             },
             "toast": {
-                "config_missing": "Gere uma chave de API e inicie o serviço primeiro",
                 "sync_success": "Sucesso! {{name}} está pronto.",
                 "sync_error": "Erro ao sincronizar {{name}}: {{error}}"
-            }
-        },
-        "supported_models": {
-            "title": "Modelos Suportados e Integração",
-            "model_name": "Nome do Modelo",
-            "model_id": "ID do Modelo",
-            "description": "Descrição",
-            "action": "Ação"
+            },
+            "sync_confirm_title": "Confirmação de Sincronização",
+            "sync_confirm_message": "Pronto para sincronizar a configuração do {{name}}. ⚠️ Aviso: Isso substituirá seus arquivos de configuração local existentes (como tokens de login, chaves de API). Tem certeza de que deseja continuar?"
         }
     },
     "monitor": {
@@ -756,10 +805,10 @@
             "tokens": "Tokens (E/S)",
             "time": "Tempo",
             "model": "Modelo",
-            "id": "ID da Solicitação",
-            "protocol": "Protocolo",
             "mapped_model": "Modelo Mapeado",
+            "protocol": "Protocolo",
             "account_used": "Conta Utilizada",
+            "id": "ID da Solicitação",
             "payload_empty": "Sem Carga"
         },
         "dialog": {
@@ -771,15 +820,6 @@
         "title": "Nova Versão Disponível",
         "message": "Uma nova versão está pronta com otimizações e melhorias. Atual: v{{current}}",
         "action": "Atualizar Agora"
-    },
-    "errors": {
-        "stream": {
-            "timeout_error": "Tempo limite da solicitação, por favor verifique sua conexão de rede",
-            "connection_error": "Falha na conexão, por favor verifique sua rede ou configurações de proxy",
-            "decode_error": "Rede instável, transmissão de dados interrompida. Tente: 1) Verificar rede 2) Alternar proxy 3) Tentar novamente",
-            "stream_error": "Erro na transmissão de stream, por favor tente novamente mais tarde",
-            "unknown_error": "Erro desconhecido ocorreu, por favor tente novamente mais tarde"
-        }
     },
     "token_stats": {
         "title": "Estatísticas de Consumo de Tokens",
@@ -807,6 +847,15 @@
         "total": "Total",
         "percentage": "Porcentagem",
         "no_data": "Sem dados"
+    },
+    "errors": {
+        "stream": {
+            "timeout_error": "Tempo limite da solicitação, por favor verifique sua conexão de rede",
+            "connection_error": "Falha na conexão, por favor verifique sua rede ou configurações de proxy",
+            "decode_error": "Rede instável, transmissão de dados interrompida. Tente: 1) Verificar rede 2) Alternar proxy 3) Tentar novamente",
+            "stream_error": "Erro na transmissão de stream, por favor tente novamente mais tarde",
+            "unknown_error": "Erro desconhecido ocorreu, por favor tente novamente mais tarde"
+        }
     },
     "instances": {
         "title": "Gerenciamento de Instâncias",
@@ -837,5 +886,62 @@
         "no_active_account": "Sem conta ativa",
         "tip_title": "Dica",
         "tip_content": "Cada instância usa um diretório de dados separado e pode executar várias contas simultaneamente."
+    },
+    "mitm": {
+        "title": "MITM Proxy Monitor",
+        "subtitle": "Monitor Antigravity internal API calls",
+        "config": {
+            "port": "Listen Port",
+            "port_tooltip": "Local port for MITM proxy to listen on",
+            "domains": "Target Domains",
+            "domains_tooltip": "Target domains to intercept, separated by comma",
+            "root_ca": "Root CA Configuration",
+            "cert_path": "Certificate Path (PEM)",
+            "key_path": "Private Key Path (PEM)"
+        },
+        "status": {
+            "valid": "Valid",
+            "invalid": "Invalid"
+        },
+        "stats": {
+            "port": "Port",
+            "certs": "Cert Cache",
+            "requests": "Requests",
+            "speed": "Avg Speed",
+            "tokens": "Token Stats",
+            "input": "Input",
+            "output": "Output",
+            "by_model": "Stats by Model"
+        },
+        "monitoring": {
+            "enabled": "Monitoring Enabled",
+            "disabled": "Monitoring Disabled"
+        },
+        "action": {
+            "validate_ca": "Validate Root CA",
+            "clear_stats": "Clear Stats",
+            "clear_cache": "Clear Cert Cache",
+            "select_file": "Select File"
+        },
+        "error": {
+            "no_ca_path": "Please set Root CA certificate and key paths first",
+            "ca_invalid": "Root CA validation failed"
+        },
+        "success": {
+            "started": "MITM proxy started",
+            "stopped": "MITM proxy stopped",
+            "ca_valid": "Root CA validation successful"
+        },
+        "hint": {
+            "title": "Usage Instructions",
+            "step1": "Prepare ECDSA Root CA certificate and private key (only ECDSA P-256/P-384 supported)",
+            "step2": "Install Root CA certificate to system trusted root CA store",
+            "step3": "Configure Antigravity to use proxy address: 127.0.0.1:8081",
+            "step4": "After starting MITM proxy, all HTTPS requests to target domains will be intercepted and monitored",
+            "cert_install": "Certificate Installation Commands:",
+            "windows_cmd": "Windows (Admin Privileges):",
+            "macos_cmd": "macOS:",
+            "linux_cmd": "Linux:"
+        }
     }
 }

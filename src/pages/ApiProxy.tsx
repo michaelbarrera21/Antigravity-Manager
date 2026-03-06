@@ -283,15 +283,12 @@ export default function ApiProxy() {
     const handleMappingUpdate = async (type: 'custom', key: string, value: string) => {
         if (!appConfig) return;
 
-        console.log('[DEBUG] handleMappingUpdate called:', { type, key, value });
-
         const newConfig = { ...appConfig.proxy };
         newConfig.custom_mapping = { ...(newConfig.custom_mapping || {}), [key]: value };
 
         try {
             await invoke('update_model_mapping', { config: newConfig });
             setAppConfig({ ...appConfig, proxy: newConfig });
-            console.log('[DEBUG] Mapping updated successfully');
             showToast(t('common.saved'), 'success');
         } catch (error) {
             console.error('Failed to update mapping:', error);
@@ -1794,6 +1791,8 @@ print(response.text)`;
                         </div>
                     )
                 }
+
+
                 {/* 各种对话框 */}
                 <ModalDialog
                     isOpen={isResetConfirmOpen}

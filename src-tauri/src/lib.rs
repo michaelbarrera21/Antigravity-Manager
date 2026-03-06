@@ -1,6 +1,7 @@
 mod commands;
 pub mod error;
 mod models;
+mod mitm; // MITM proxy module
 mod modules;
 mod proxy; // Proxy service module
 mod utils;
@@ -48,6 +49,9 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Initialize Rustls CryptoProvider
+    rustls::crypto::CryptoProvider::install_default(rustls::crypto::ring::default_provider()).expect("Failed to install crypto provider");
+    
     // Increase file descriptor limit (macOS only)
     #[cfg(target_os = "macos")]
     increase_nofile_limit();
@@ -80,6 +84,7 @@ pub fn run() {
             });
         }))
         .manage(commands::proxy::ProxyServiceState::new())
+        .manage(crate::mitm::MitmServiceState::new())
         .setup(|app| {
             info!("Setup starting...");
 
@@ -126,6 +131,19 @@ pub fn run() {
                             error!("Failed to auto-start proxy service: {}", e);
                         } else {
                             info!("Proxy service auto-started successfully");
+                        }
+                    }
+
+                    // Auto-start MITM Proxy if enabled
+                    if config.mitm.enabled {
+                        let mitm_state = handle.state::<crate::mitm::MitmServiceState>();
+                        if let Err(e) = commands::mitm::start_mitm_proxy_service_internal(
+                            config.mitm.clone(),
+                            &mitm_state,
+                        ).await {
+                            error!("Failed to auto-start MITM proxy service: {}", e);
+                        } else {
+                            info!("MITM proxy service auto-started successfully on port {}", config.mitm.port);
                         }
                     }
                 }
@@ -289,6 +307,17 @@ pub fn run() {
             commands::set_current_account_for_instance,
             commands::switch_account_in_instance,
             commands::get_running_instances,
+            // MITM proxy commands
+            commands::mitm::start_mitm_proxy_service,
+            commands::mitm::stop_mitm_proxy_service,
+            commands::mitm::get_mitm_proxy_status,
+            commands::mitm::get_mitm_speed_stats,
+            commands::mitm::clear_mitm_speed_stats,
+            commands::mitm::validate_mitm_root_ca,
+            commands::mitm::set_mitm_monitor_enabled,
+            commands::mitm::get_mitm_logs,
+            commands::mitm::clear_mitm_logs,
+            commands::mitm::clear_mitm_cert_cache,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

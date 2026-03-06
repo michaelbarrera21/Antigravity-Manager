@@ -225,6 +225,11 @@ pub async fn clear_proxy_logs(
     let monitor_lock = state.monitor.read().await;
     if let Some(monitor) = monitor_lock.as_ref() {
         monitor.clear().await;
+    } else {
+        // 允许在不启动服务时也可以独立清空对应数据库
+        if let Err(e) = crate::modules::proxy_db::clear_logs() {
+            tracing::error!("Failed to clear logs in DB: {}", e);
+        }
     }
     Ok(())
 }

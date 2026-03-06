@@ -6,6 +6,7 @@ import Accounts from './pages/Accounts';
 import Instances from './pages/Instances';
 import Settings from './pages/Settings';
 import ApiProxy from './pages/ApiProxy';
+import MitmDashboard from './pages/MitmDashboard';
 import Monitor from './pages/Monitor';
 import TokenStats from './pages/TokenStats';
 import ThemeManager from './components/common/ThemeManager';
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path: 'api-proxy',
         element: <ApiProxy />,
+      },
+      {
+        path: 'mitm',
+        element: <MitmDashboard />,
       },
       {
         path: 'monitor',

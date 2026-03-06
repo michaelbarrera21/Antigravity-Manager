@@ -43,6 +43,7 @@
         "instances": "Instances",
         "proxy": "API Proxy",
         "call_records": "Traffic Logs",
+        "mitm": "MITM",
         "token_stats": "Token Stats",
         "settings": "Settings",
         "theme_to_dark": "Switch to Dark Mode",
@@ -885,5 +886,62 @@
         "no_active_account": "No active account",
         "tip_title": "Tip",
         "tip_content": "Each instance uses a separate data directory and can run multiple accounts simultaneously."
+    },
+    "mitm": {
+        "title": "MITM Proxy Monitor",
+        "subtitle": "Monitor Antigravity internal API calls",
+        "config": {
+            "port": "Listen Port",
+            "port_tooltip": "Local port for MITM proxy to listen on",
+            "domains": "Target Domains",
+            "domains_tooltip": "Target domains to intercept, separated by comma",
+            "root_ca": "Root CA Configuration",
+            "cert_path": "Certificate Path (PEM)",
+            "key_path": "Private Key Path (PEM)"
+        },
+        "status": {
+            "valid": "Valid",
+            "invalid": "Invalid"
+        },
+        "stats": {
+            "port": "Port",
+            "certs": "Cert Cache",
+            "requests": "Requests",
+            "speed": "Avg Speed",
+            "tokens": "Token Stats",
+            "input": "Input",
+            "output": "Output",
+            "by_model": "Stats by Model"
+        },
+        "monitoring": {
+            "enabled": "Monitoring Enabled",
+            "disabled": "Monitoring Disabled"
+        },
+        "action": {
+            "validate_ca": "Validate Root CA",
+            "clear_stats": "Clear Stats",
+            "clear_cache": "Clear Cert Cache",
+            "select_file": "Select File"
+        },
+        "error": {
+            "no_ca_path": "Please set Root CA certificate and key paths first",
+            "ca_invalid": "Root CA validation failed"
+        },
+        "success": {
+            "started": "MITM proxy started",
+            "stopped": "MITM proxy stopped",
+            "ca_valid": "Root CA validation successful"
+        },
+        "hint": {
+            "title": "Usage Instructions",
+            "step1": "Prepare ECDSA Root CA certificate and private key (only ECDSA P-256/P-384 supported)",
+            "step2": "Install Root CA certificate to system trusted root CA store",
+            "step3": "Configure Antigravity to use proxy address: 127.0.0.1:8081",
+            "step4": "After starting MITM proxy, all HTTPS requests to target domains will be intercepted and monitored",
+            "cert_install": "Certificate Installation Commands:",
+            "windows_cmd": "Windows (Admin Privileges):",
+            "macos_cmd": "macOS:",
+            "linux_cmd": "Linux:"
+        }
     }
 }

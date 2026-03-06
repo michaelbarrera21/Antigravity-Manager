@@ -7,6 +7,8 @@ use tauri_plugin_opener::OpenerExt;
 pub mod proxy;
 // 导出 autostart 命令
 pub mod autostart;
+// 导出 mitm 命令
+pub mod mitm;
 
 use uuid::Uuid;
 

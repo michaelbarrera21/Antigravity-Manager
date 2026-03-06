@@ -38,10 +38,19 @@ pub fn init_logger() {
         }
     };
     
-    // 1. Set up file Appender (using tracing-appender for rolling logs)
-    // Using a daily rolling strategy here
-    let file_appender = tracing_appender::rolling::daily(log_dir, "app.log");
-    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    let timestamp = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S");
+    let log_filename = format!("app_{}.log", timestamp);
+    let log_path = log_dir.join(&log_filename);
+    
+    let log_file = match std::fs::File::create(&log_path) {
+        Ok(f) => f,
+        Err(e) => {
+            eprintln!("Failed to create log file {}: {}", log_path.display(), e);
+            return;
+        }
+    };
+    
+    let (non_blocking, _guard) = tracing_appender::non_blocking(log_file);
     
     // 2. Console output layer (using local timezone)
     let console_layer = fmt::Layer::new()
@@ -73,7 +82,7 @@ pub fn init_logger() {
     // Recommended practice when using tracing_appender::non_blocking (if manual flushing is not needed)
     std::mem::forget(_guard);
     
-    info!("Log system initialized (Console + File persistence)");
+    info!("Log system initialized (Console + File persistence), log file: {}", log_filename);
     
     // Auto-cleanup logs older than 7 days
     if let Err(e) = cleanup_old_logs(7) {

@@ -1,7 +1,7 @@
 {
     "common": {
-        "empty": "Boş",
         "loading": "Yükleniyor...",
+        "load_more": "Load More",
         "add": "Ekle",
         "copy": "Kopyala",
         "action": "İşlem",
@@ -40,16 +40,20 @@
     "nav": {
         "dashboard": "Kontrol Paneli",
         "accounts": "Hesaplar",
+        "instances": "Instances",
         "proxy": "API Proxy",
-        "token_stats": "İstatistikler",
         "call_records": "Trafik Günlükleri",
+        "mitm": "MITM",
+        "token_stats": "İstatistikler",
         "settings": "Ayarlar",
         "theme_to_dark": "Karanlık Moda Geç",
         "theme_to_light": "Aydınlık Moda Geç",
         "switch_to_english": "İngilizce'ye Geç",
         "switch_to_chinese": "Çince'ye Geç",
+        "switch_to_traditional_chinese": "Switch to Traditional Chinese",
         "switch_to_english_short": "EN",
         "switch_to_chinese_short": "ZH",
+        "switch_to_traditional_chinese_short": "TW",
         "switch_to_japanese": "Japonca'ya Geç",
         "switch_to_japanese_short": "JA",
         "switch_to_turkish": "Türkçe'ye Geç",
@@ -84,6 +88,11 @@
         "export_data": "Veri Dışa Aktar",
         "for_gemini": "Gemini İçin",
         "for_claude": "Claude İçin",
+        "instance_accounts": "Instance Accounts",
+        "no_running_instance": "No running instance",
+        "no_instance": "No instances",
+        "running": "running",
+        "no_account_selected": "No account selected",
         "toast": {
             "switch_success": "Geçiş başarılı!",
             "switch_error": "Hesap geçişi başarısız",
@@ -98,6 +107,11 @@
         "search_placeholder": "E-posta ara...",
         "all": "Tümü",
         "available": "Kullanılabilir",
+        "instance": {
+            "ask_start": "Instance is not running. Start it now?",
+            "start_title": "Start Instance",
+            "started": "Instance started"
+        },
         "low_quota": "Düşük Kota",
         "ultra": "ULTRA",
         "pro": "PRO",
@@ -106,6 +120,11 @@
         "refresh_all": "Tümünü Yenile",
         "refresh_selected": "Yenile ({{count}})",
         "export_selected": "Dışa Aktar ({{count}})",
+        "import_json": "Import",
+        "import_success": "Successfully imported {{count}} accounts",
+        "import_partial": "Import completed: {{success}} succeeded, {{fail}} failed",
+        "import_fail": "Import failed: {{error}}",
+        "import_invalid_format": "Invalid JSON format, please ensure the file contains email and refresh_token fields",
         "delete_selected": "Sil ({{count}})",
         "current": "Mevcut",
         "current_badge": "Mevcut",
@@ -127,6 +146,7 @@
         "last_used": "Son Kullanım",
         "reset_time": "Sıfırlama Zamanı",
         "switch_to": "Bu hesaba geç",
+        "switch_hot": "Hot Switch (No Restart)",
         "actions": "İşlemler",
         "device_fingerprint": "Cihaz Parmak İzi",
         "device_fingerprint_dialog": {
@@ -164,9 +184,13 @@
             "restored": "Geri yüklendi",
             "deleted": "Silindi",
             "directory_opened": "Depolama dizini açıldı",
-            "original_fingerprint_not_found": "Orijinal parmak izi bulunamadı",
-            "storage_json_not_found": "storage.json bulunamadı, lütfen Antigravity'nin yapılandırma dosyasını oluşturmak için çalıştırıldığından emin olun"
+            "original_fingerprint_not_found": "Orijinal parmak izi bulunamadı"
         },
+        "warmup_all": "One-click Warmup",
+        "warmup_selected": "Warmup ({{count}})",
+        "warmup_this": "Warmup this account",
+        "warmup_now": "Warmup Now",
+        "warmup_batch_triggered": "Warmup tasks triggered for {{count}} accounts",
         "quota_protected": "Korumalı",
         "details": {
             "title": "Kota Detayları"
@@ -248,7 +272,11 @@
             "disable_proxy_title": "Proxy'yi Devre Dışı Bırak",
             "disable_proxy_msg": "Bu hesap için proxy'yi devre dışı bırakmak istediğinizden emin misiniz? Hesap uygulamada kullanılabilir durumda kalacaktır.",
             "enable_proxy_title": "Proxy'yi Etkinleştir",
-            "enable_proxy_msg": "Bu hesap için proxy'yi yeniden etkinleştirmek istediğinizden emin misiniz?"
+            "enable_proxy_msg": "Bu hesap için proxy'yi yeniden etkinleştirmek istediğinizden emin misiniz?",
+            "warmup_all_title": "Full Manual Warmup",
+            "warmup_all_msg": "Are you sure you want to trigger warmup tasks for all eligible accounts immediately? This will send minimal traffic to Google services to reset quota cycles.",
+            "batch_warmup_title": "Batch Manual Warmup",
+            "batch_warmup_msg": "Are you sure you want to trigger warmup for the selected {{count}} accounts immediately?"
         }
     },
     "settings": {
@@ -257,6 +285,7 @@
             "general": "Genel",
             "account": "Hesap",
             "proxy": "Proxy Ayarları",
+            "instances": "Instances",
             "advanced": "Gelişmiş",
             "about": "Hakkında"
         },
@@ -270,16 +299,39 @@
             "auto_launch": "Başlangıçta Çalıştır",
             "auto_launch_enabled": "Etkin",
             "auto_launch_disabled": "Devre Dışı",
-            "auto_launch_desc": "Sistem başladığında Antigravity Tools'u otomatik olarak başlat"
+            "auto_launch_desc": "Sistem başladığında Antigravity Tools'u otomatik olarak başlat",
+            "auto_check_update": "Auto Check for Updates",
+            "auto_check_update_desc": "Automatically check for new versions on startup",
+            "auto_check_update_enabled": "Auto check enabled",
+            "auto_check_update_disabled": "Auto check disabled",
+            "update_check_interval": "Check Interval (hours)",
+            "update_check_interval_desc": "Set auto-check interval (1-168 hours)",
+            "update_check_interval_saved": "Check interval settings saved"
         },
         "account": {
             "title": "Hesap Ayarları",
             "auto_refresh": "Otomatik Kota Yenileme",
             "auto_refresh_desc": "Tüm hesaplar için kota bilgilerini periyodik olarak otomatik yenile",
+            "always_on": "Always On",
             "refresh_interval": "Yenileme Aralığı (dakika)",
             "auto_sync": "Mevcut Hesabı Otomatik Senkronize Et",
             "auto_sync_desc": "Mevcut aktif hesap bilgilerini periyodik olarak otomatik senkronize et",
             "sync_interval": "Senkronizasyon Aralığı (saniye)"
+        },
+        "warmup": {
+            "title": "Smart Warmup",
+            "desc": "Automatically monitors all models and triggers warmup immediately when quota reaches 100%, keeping models warm"
+        },
+        "quota_protection": {
+            "title": "Quota Protection",
+            "enable": "Enable Quota Protection",
+            "enable_desc": "Automatically disable proxy when account quota falls below threshold, and auto-restore when quota resets",
+            "threshold_label": "Reserved Quota Percentage",
+            "monitored_models_label": "Monitored Models (Trigger Conditions)",
+            "monitored_models_desc": "Select at least one. Protection triggers if ANY selected model falls below threshold",
+            "range": "Range",
+            "example": "Example: At {{percentage}}%, an account with {{total}} quota will be disabled when remaining ≤ {{threshold}}",
+            "auto_restore_info": "Account will be automatically re-enabled when quota resets"
         },
         "pinned_quota_models": {
             "title": "Sabitlenmiş Kota Modelleri",
@@ -350,6 +402,36 @@
             "support_alipay": "Alipay",
             "support_wechat": "WeChat Pay",
             "support_buymeacoffee": "Buy Me a Coffee"
+        },
+        "instances": {
+            "title": "Instance Manager",
+            "description": "Manage multiple independent Antigravity instances, each can bind different accounts",
+            "create": "Create Instance",
+            "create_new": "Create New Instance",
+            "name": "Instance Name",
+            "name_placeholder": "e.g., Work Account, Personal Project",
+            "data_dir": "Data Directory",
+            "data_dir_placeholder": "Select --user-data-dir path",
+            "data_dir_hint": "This path will be used as the --user-data-dir parameter. Select an empty directory or an existing Antigravity data directory",
+            "select_data_dir": "Select Instance Data Directory",
+            "create_validation_error": "Please enter instance name and data directory",
+            "created": "Instance created successfully",
+            "deleted": "Instance deleted",
+            "updated": "Instance updated",
+            "started": "Instance started",
+            "stopped": "Instance stopped",
+            "default": "Default",
+            "cannot_delete_default": "Cannot delete default instance",
+            "start": "Start Instance",
+            "stop": "Stop Instance",
+            "accounts_count": "{{count}} accounts",
+            "empty": "No instances yet, click the button above to create one",
+            "tip_title": "Usage Tips",
+            "tip_content": "When switching accounts, the system will only restart the instance that the account belongs to. Other instances will keep running. To run multiple instances simultaneously, ensure they use different data directories.",
+            "bound_accounts": "Bound Accounts",
+            "move_account": "Move to another instance",
+            "move_to": "Move to:",
+            "account_moved": "Account moved to new instance"
         }
     },
     "tray": {
@@ -431,8 +513,6 @@
                     "title": "Model Eşleme",
                     "title_tooltip": "Mevcut z.ai model kimliklerini alın ve gelen Anthropic/Claude model adlarının z.ai model kimliklerine nasıl çevrileceğini yapılandırın.",
                     "refresh": "Modelleri getir",
-                    "btn_edit": "Düzenle",
-                    "btn_save": "Kaydet",
                     "refreshing": "Getiriliyor...",
                     "hint": "Kullanılabilir modeller: {{count}}. Bir öneri seçin veya özel model kimliği yazın.",
                     "error": "Modeller getirilemedi: {{error}}",
@@ -505,12 +585,7 @@
                 "max_wait": "Maks Bekleme (sn)",
                 "max_wait_tooltip": "Yalnızca 'Önbellek Öncelikli' modunda kullanılır: oran limiti sıfırlama zamanı bu değerin altındaysa geçiş yapmak yerine bekle.",
                 "clear_bindings": "Oturum Bağlantılarını Temizle",
-                "clear_bindings_tooltip": "Tüm oturum ve hesap bağlantılarını hemen kesin, bir sonraki istekte hesapları yeniden atanmaya zorlayın.",
-                "fixed_account": "Sabit Hesap Modu",
-                "fixed_account_tooltip": "Etkinleştirildiğinde, tüm API istekleri hesaplar arasında geçiş yapmak yerine yalnızca seçilen hesabı kullanacaktır.",
-                "round_robin_set": "Round-robin modu etkinleştirildi",
-                "fixed_account_set": "Sabit hesap modu etkinleştirildi",
-                "account_changed": "Hesap şuna değiştirildi: {{email}}"
+                "clear_bindings_tooltip": "Tüm oturum ve hesap bağlantılarını hemen kesin, bir sonraki istekte hesapları yeniden atanmaya zorlayın."
             },
             "experimental": {
                 "title": "Deneysel Ayarlar",
@@ -649,6 +724,13 @@
             "click_tip": "👆 Model kodunu güncellemek için modele tıklayın",
             "copy_base": "Base Kopyala"
         },
+        "supported_models": {
+            "title": "Desteklenen Modeller ve Entegrasyon",
+            "model_name": "Model Adı",
+            "model_id": "Model Kimliği",
+            "description": "Açıklama",
+            "action": "İşlem"
+        },
         "cli_sync": {
             "title": "CLI Senkronizasyonu",
             "subtitle": "Mevcut API URL'sini ve anahtarını AI CLI araçlarınızla senkronize edin",
@@ -665,26 +747,18 @@
             "btn_view": "Yapılandırmayı Görüntüle",
             "btn_restore": "Varsayılana Dön",
             "btn_restore_backup": "Yedeği Geri Yükle",
-            "restore_backup_confirm": "Yedek yapılandırma bulundu. Geri yüklemek istediğinizden emin misiniz?",
-            "sync_confirm_title": "Senkronizasyon Onayı",
-            "sync_confirm_message": "{{name}} yapılandırmasını senkronize etmeye hazır. ⚠️ Uyarı: Bu işlem mevcut yerel yapılandırma dosyalarınızın (ör. oturum belirteçleri, API Anahtarları) üzerine yazacaktır. Devam etmek istediğinizden emin misiniz?",
             "restore_confirm": "{{name}} yapılandırmasını varsayılan değerlere sıfırlamak istediğinizden emin misiniz?",
+            "restore_backup_confirm": "Yedek yapılandırma bulundu. Geri yüklemek istediğinizden emin misiniz?",
             "modal": {
                 "view_title": "{{name}} Yapılandırma İçeriği",
                 "copy_success": "Panoya kopyalandı"
             },
             "toast": {
-                "config_missing": "Lütfen önce bir API anahtarı oluşturun ve hizmeti başlatın",
                 "sync_success": "Başarılı! {{name}} kullanıma hazır.",
                 "sync_error": "{{name}} senkronizasyon hatası: {{error}}"
-            }
-        },
-        "supported_models": {
-            "title": "Desteklenen Modeller ve Entegrasyon",
-            "model_name": "Model Adı",
-            "model_id": "Model Kimliği",
-            "description": "Açıklama",
-            "action": "İşlem"
+            },
+            "sync_confirm_title": "Senkronizasyon Onayı",
+            "sync_confirm_message": "{{name}} yapılandırmasını senkronize etmeye hazır. ⚠️ Uyarı: Bu işlem mevcut yerel yapılandırma dosyalarınızın (ör. oturum belirteçleri, API Anahtarları) üzerine yazacaktır. Devam etmek istediğinizden emin misiniz?"
         }
     },
     "monitor": {
@@ -728,15 +802,13 @@
             "request_payload": "İstek Yükü",
             "response_payload": "Yanıt Yükü",
             "duration": "Süre",
-            "token_stats": "Token Stats",
-            "settings": "Settings",
             "tokens": "Token'lar (G/Ç)",
             "time": "Zaman",
             "model": "Model",
-            "id": "İstek Kimliği",
-            "protocol": "Protokol",
             "mapped_model": "Eşlenen Model",
+            "protocol": "Protokol",
             "account_used": "Kullanılan Hesap",
+            "id": "İstek Kimliği",
             "payload_empty": "Yük Yok"
         },
         "dialog": {
@@ -776,6 +848,15 @@
         "percentage": "Oran",
         "no_data": "Veri yok"
     },
+    "errors": {
+        "stream": {
+            "timeout_error": "Request timeout, please check your network connection",
+            "connection_error": "Connection failed, please check your network or proxy settings",
+            "decode_error": "Network unstable, data transmission interrupted. Try: 1) Check network 2) Switch proxy 3) Retry",
+            "stream_error": "Stream transmission error, please retry later",
+            "unknown_error": "Unknown error occurred, please retry later"
+        }
+    },
     "instances": {
         "title": "Instance Yönetimi",
         "description": "Birden fazla Antigravity instance'ını yönet",
@@ -805,5 +886,62 @@
         "no_active_account": "Aktif hesap yok",
         "tip_title": "İpucu",
         "tip_content": "Her instance ayrı bir veri dizini kullanır ve aynı anda birden fazla hesap çalıştırabilir."
+    },
+    "mitm": {
+        "title": "MITM Proxy Monitor",
+        "subtitle": "Monitor Antigravity internal API calls",
+        "config": {
+            "port": "Listen Port",
+            "port_tooltip": "Local port for MITM proxy to listen on",
+            "domains": "Target Domains",
+            "domains_tooltip": "Target domains to intercept, separated by comma",
+            "root_ca": "Root CA Configuration",
+            "cert_path": "Certificate Path (PEM)",
+            "key_path": "Private Key Path (PEM)"
+        },
+        "status": {
+            "valid": "Valid",
+            "invalid": "Invalid"
+        },
+        "stats": {
+            "port": "Port",
+            "certs": "Cert Cache",
+            "requests": "Requests",
+            "speed": "Avg Speed",
+            "tokens": "Token Stats",
+            "input": "Input",
+            "output": "Output",
+            "by_model": "Stats by Model"
+        },
+        "monitoring": {
+            "enabled": "Monitoring Enabled",
+            "disabled": "Monitoring Disabled"
+        },
+        "action": {
+            "validate_ca": "Validate Root CA",
+            "clear_stats": "Clear Stats",
+            "clear_cache": "Clear Cert Cache",
+            "select_file": "Select File"
+        },
+        "error": {
+            "no_ca_path": "Please set Root CA certificate and key paths first",
+            "ca_invalid": "Root CA validation failed"
+        },
+        "success": {
+            "started": "MITM proxy started",
+            "stopped": "MITM proxy stopped",
+            "ca_valid": "Root CA validation successful"
+        },
+        "hint": {
+            "title": "Usage Instructions",
+            "step1": "Prepare ECDSA Root CA certificate and private key (only ECDSA P-256/P-384 supported)",
+            "step2": "Install Root CA certificate to system trusted root CA store",
+            "step3": "Configure Antigravity to use proxy address: 127.0.0.1:8081",
+            "step4": "After starting MITM proxy, all HTTPS requests to target domains will be intercepted and monitored",
+            "cert_install": "Certificate Installation Commands:",
+            "windows_cmd": "Windows (Admin Privileges):",
+            "macos_cmd": "macOS:",
+            "linux_cmd": "Linux:"
+        }
     }
 }

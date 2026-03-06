@@ -1,6 +1,5 @@
 {
     "common": {
-        "empty": "Пусто",
         "loading": "Загрузка...",
         "load_more": "Загрузить еще",
         "add": "Добавить",
@@ -41,8 +40,10 @@
     "nav": {
         "dashboard": "Дашборд",
         "accounts": "Аккаунты",
+        "instances": "Instances",
         "proxy": "API Прокси",
         "call_records": "Логи трафика",
+        "mitm": "MITM",
         "token_stats": "Статистика",
         "settings": "Настройки",
         "theme_to_dark": "Переключить на темную тему",
@@ -87,6 +88,11 @@
         "export_data": "Экспорт данных",
         "for_gemini": "Для Gemini",
         "for_claude": "Для Claude",
+        "instance_accounts": "Instance Accounts",
+        "no_running_instance": "No running instance",
+        "no_instance": "No instances",
+        "running": "running",
+        "no_account_selected": "No account selected",
         "toast": {
             "switch_success": "Успешное переключение!",
             "switch_error": "Не удалось переключить аккаунт",
@@ -101,6 +107,11 @@
         "search_placeholder": "Поиск по email...",
         "all": "Все",
         "available": "Доступны",
+        "instance": {
+            "ask_start": "Instance is not running. Start it now?",
+            "start_title": "Start Instance",
+            "started": "Instance started"
+        },
         "low_quota": "Низкая квота",
         "ultra": "ULTRA",
         "pro": "PRO",
@@ -109,6 +120,11 @@
         "refresh_all": "Обновить все",
         "refresh_selected": "Обновить ({{count}})",
         "export_selected": "Экспортировать ({{count}})",
+        "import_json": "Import",
+        "import_success": "Successfully imported {{count}} accounts",
+        "import_partial": "Import completed: {{success}} succeeded, {{fail}} failed",
+        "import_fail": "Import failed: {{error}}",
+        "import_invalid_format": "Invalid JSON format, please ensure the file contains email and refresh_token fields",
         "delete_selected": "Удалить ({{count}})",
         "current": "Текущий",
         "current_badge": "Текущий",
@@ -130,6 +146,7 @@
         "last_used": "Последнее использование",
         "reset_time": "Время сброса",
         "switch_to": "Переключить на этот аккаунт",
+        "switch_hot": "Hot Switch (No Restart)",
         "actions": "Действия",
         "device_fingerprint": "Отпечаток Устройства",
         "device_fingerprint_dialog": {
@@ -167,8 +184,7 @@
             "restored": "Восстановлено",
             "deleted": "Удалено",
             "directory_opened": "Каталог хранения открыт",
-            "original_fingerprint_not_found": "Оригинальный отпечаток не найден",
-            "storage_json_not_found": "storage.json не найден, убедитесь, что Antigravity был запущен для создания файла конфигурации"
+            "original_fingerprint_not_found": "Оригинальный отпечаток не найден"
         },
         "warmup_all": "Разогреть все одним кликом",
         "warmup_selected": "Разогреть ({{count}})",
@@ -269,6 +285,7 @@
             "general": "Общие",
             "account": "Аккаунт",
             "proxy": "Настройки прокси",
+            "instances": "Instances",
             "advanced": "Дополнительно",
             "about": "О программе"
         },
@@ -352,7 +369,17 @@
             "clear_logs": "Очистить кэш логов",
             "clear_logs_title": "Подтверждение очистки логов",
             "clear_logs_msg": "Вы уверены, что хотите очистить все файлы кэша логов?",
-            "logs_cleared": "Кэш логов очищен"
+            "logs_cleared": "Кэш логов очищен",
+            "http_api_title": "HTTP API Service",
+            "http_api_desc": "Provides local HTTP interface for external programs (e.g. VS Code plugins).",
+            "http_api_enabled": "Enable HTTP API",
+            "http_api_enabled_desc": "When enabled, external programs can manage accounts via HTTP interface",
+            "http_api_port": "Listen Port",
+            "http_api_port_desc": "Restart required after changing port. If port conflict occurs, please use another available port.",
+            "http_api_port_placeholder": "Default port 19527",
+            "http_api_port_invalid": "Invalid port number (range: 1024-65535)",
+            "http_api_settings_saved": "HTTP API settings saved, restart required to apply",
+            "http_api_restart_required": "⚠️ Restart required to apply"
         },
         "about": {
             "title": "О программе",
@@ -375,6 +402,36 @@
             "support_alipay": "Alipay",
             "support_wechat": "WeChat Pay",
             "support_buymeacoffee": "Buy Me a Coffee"
+        },
+        "instances": {
+            "title": "Instance Manager",
+            "description": "Manage multiple independent Antigravity instances, each can bind different accounts",
+            "create": "Create Instance",
+            "create_new": "Create New Instance",
+            "name": "Instance Name",
+            "name_placeholder": "e.g., Work Account, Personal Project",
+            "data_dir": "Data Directory",
+            "data_dir_placeholder": "Select --user-data-dir path",
+            "data_dir_hint": "This path will be used as the --user-data-dir parameter. Select an empty directory or an existing Antigravity data directory",
+            "select_data_dir": "Select Instance Data Directory",
+            "create_validation_error": "Please enter instance name and data directory",
+            "created": "Instance created successfully",
+            "deleted": "Instance deleted",
+            "updated": "Instance updated",
+            "started": "Instance started",
+            "stopped": "Instance stopped",
+            "default": "Default",
+            "cannot_delete_default": "Cannot delete default instance",
+            "start": "Start Instance",
+            "stop": "Stop Instance",
+            "accounts_count": "{{count}} accounts",
+            "empty": "No instances yet, click the button above to create one",
+            "tip_title": "Usage Tips",
+            "tip_content": "When switching accounts, the system will only restart the instance that the account belongs to. Other instances will keep running. To run multiple instances simultaneously, ensure they use different data directories.",
+            "bound_accounts": "Bound Accounts",
+            "move_account": "Move to another instance",
+            "move_to": "Move to:",
+            "account_moved": "Account moved to new instance"
         }
     },
     "tray": {
@@ -528,11 +585,6 @@
                 "max_wait": "Макс. ожидание (сек)",
                 "max_wait_tooltip": "Используется только в режиме 'Кэш в приоритете': ждать вместо переключения, если время сброса ограничения скорости ниже этого значения.",
                 "clear_bindings": "Очистить привязки сессий",
-                "fixed_account": "Режим фиксированной учетной записи",
-                "fixed_account_tooltip": "При включении все запросы API будут использовать только выбранную учетную запись вместо чередования между учетными записями.",
-                "round_robin_set": "Режим циклического перебора включен",
-                "fixed_account_set": "Режим фиксированной учетной записи включен",
-                "account_changed": "Учетная запись изменена на: {{email}}",
                 "clear_bindings_tooltip": "Жесткий сброс всех привязок сессия-аккаунт, принудительное переназначение аккаунтов при следующем запросе."
             },
             "experimental": {
@@ -672,6 +724,13 @@
             "click_tip": "👆 Кликните на модель для обновления кода",
             "copy_base": "Копировать Base"
         },
+        "supported_models": {
+            "title": "Поддерживаемые модели и интеграция",
+            "model_name": "Название модели",
+            "model_id": "ID модели",
+            "description": "Описание",
+            "action": "Действие"
+        },
         "cli_sync": {
             "title": "Синхронизация CLI",
             "subtitle": "Синхронизируйте текущий API URL и ключ с вашими AI CLI инструментами",
@@ -688,26 +747,18 @@
             "btn_view": "Просмотр конфига",
             "btn_restore": "Восстановить",
             "btn_restore_backup": "Восстановить резервную копию",
-            "restore_backup_confirm": "Обнаружена резервная копия конфигурации. Вы уверены, что хотите восстановить ее?",
-            "sync_confirm_title": "Подтверждение синхронизации",
-            "sync_confirm_message": "Готово к синхронизации конфигурации {{name}}. ⚠️ Внимание: это перезапишет ваши существующие локальные файлы конфигурации (например, токены входа, API ключи). Вы уверены, что хотите продолжить?",
             "restore_confirm": "Вы уверены, что хотите сбросить конфиг {{name}} на значения по умолчанию?",
+            "restore_backup_confirm": "Обнаружена резервная копия конфигурации. Вы уверены, что хотите восстановить ее?",
             "modal": {
                 "view_title": "Содержимое конфига {{name}}",
                 "copy_success": "Скопировано в буфер обмена"
             },
             "toast": {
-                "config_missing": "Сначала сгенерируйте API ключ и запустите сервис",
                 "sync_success": "Успешно! {{name}} готов к работе.",
                 "sync_error": "Ошибка синхронизации {{name}}: {{error}}"
-            }
-        },
-        "supported_models": {
-            "title": "Поддерживаемые модели и интеграция",
-            "model_name": "Название модели",
-            "model_id": "ID модели",
-            "description": "Описание",
-            "action": "Действие"
+            },
+            "sync_confirm_title": "Подтверждение синхронизации",
+            "sync_confirm_message": "Готово к синхронизации конфигурации {{name}}. ⚠️ Внимание: это перезапишет ваши существующие локальные файлы конфигурации (например, токены входа, API ключи). Вы уверены, что хотите продолжить?"
         }
     },
     "monitor": {
@@ -754,10 +805,10 @@
             "tokens": "Токены (В/И)",
             "time": "Время",
             "model": "Модель",
-            "id": "ID запроса",
-            "protocol": "Протокол",
             "mapped_model": "Сопоставленная модель",
+            "protocol": "Протокол",
             "account_used": "Использованный аккаунт",
+            "id": "ID запроса",
             "payload_empty": "Нет данных"
         },
         "dialog": {
@@ -797,6 +848,15 @@
         "percentage": "Доля",
         "no_data": "Нет данных"
     },
+    "errors": {
+        "stream": {
+            "timeout_error": "Request timeout, please check your network connection",
+            "connection_error": "Connection failed, please check your network or proxy settings",
+            "decode_error": "Network unstable, data transmission interrupted. Try: 1) Check network 2) Switch proxy 3) Retry",
+            "stream_error": "Stream transmission error, please retry later",
+            "unknown_error": "Unknown error occurred, please retry later"
+        }
+    },
     "instances": {
         "title": "Управление экземплярами",
         "description": "Управление несколькими экземплярами Antigravity",
@@ -826,5 +886,62 @@
         "no_active_account": "Нет активного аккаунта",
         "tip_title": "Подсказка",
         "tip_content": "Каждый экземпляр использует отдельный каталог данных и может запускать несколько аккаунтов одновременно."
+    },
+    "mitm": {
+        "title": "MITM Proxy Monitor",
+        "subtitle": "Monitor Antigravity internal API calls",
+        "config": {
+            "port": "Listen Port",
+            "port_tooltip": "Local port for MITM proxy to listen on",
+            "domains": "Target Domains",
+            "domains_tooltip": "Target domains to intercept, separated by comma",
+            "root_ca": "Root CA Configuration",
+            "cert_path": "Certificate Path (PEM)",
+            "key_path": "Private Key Path (PEM)"
+        },
+        "status": {
+            "valid": "Valid",
+            "invalid": "Invalid"
+        },
+        "stats": {
+            "port": "Port",
+            "certs": "Cert Cache",
+            "requests": "Requests",
+            "speed": "Avg Speed",
+            "tokens": "Token Stats",
+            "input": "Input",
+            "output": "Output",
+            "by_model": "Stats by Model"
+        },
+        "monitoring": {
+            "enabled": "Monitoring Enabled",
+            "disabled": "Monitoring Disabled"
+        },
+        "action": {
+            "validate_ca": "Validate Root CA",
+            "clear_stats": "Clear Stats",
+            "clear_cache": "Clear Cert Cache",
+            "select_file": "Select File"
+        },
+        "error": {
+            "no_ca_path": "Please set Root CA certificate and key paths first",
+            "ca_invalid": "Root CA validation failed"
+        },
+        "success": {
+            "started": "MITM proxy started",
+            "stopped": "MITM proxy stopped",
+            "ca_valid": "Root CA validation successful"
+        },
+        "hint": {
+            "title": "Usage Instructions",
+            "step1": "Prepare ECDSA Root CA certificate and private key (only ECDSA P-256/P-384 supported)",
+            "step2": "Install Root CA certificate to system trusted root CA store",
+            "step3": "Configure Antigravity to use proxy address: 127.0.0.1:8081",
+            "step4": "After starting MITM proxy, all HTTPS requests to target domains will be intercepted and monitored",
+            "cert_install": "Certificate Installation Commands:",
+            "windows_cmd": "Windows (Admin Privileges):",
+            "macos_cmd": "macOS:",
+            "linux_cmd": "Linux:"
+        }
     }
 }

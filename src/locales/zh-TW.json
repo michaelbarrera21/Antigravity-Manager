@@ -1,6 +1,5 @@
 {
     "common": {
-        "empty": "空",
         "loading": "載入中...",
         "load_more": "載入更多",
         "add": "新增",
@@ -41,9 +40,11 @@
     "nav": {
         "dashboard": "儀表板",
         "accounts": "帳號管理",
+        "instances": "Instances",
         "proxy": "API 反向代理",
-        "token_stats": "統計",
         "call_records": "流量日誌",
+        "mitm": "MITM",
+        "token_stats": "統計",
         "settings": "設定",
         "theme_to_dark": "切換到深色模式",
         "theme_to_light": "切換到淺色模式",
@@ -87,6 +88,11 @@
         "export_data": "匯出帳號資料",
         "for_gemini": "用於 Gemini",
         "for_claude": "用於 Claude",
+        "instance_accounts": "Instance Accounts",
+        "no_running_instance": "No running instance",
+        "no_instance": "No instances",
+        "running": "running",
+        "no_account_selected": "No account selected",
         "toast": {
             "switch_success": "切換成功!",
             "switch_error": "切換帳號失敗",
@@ -101,6 +107,11 @@
         "search_placeholder": "搜尋信箱...",
         "all": "全部",
         "available": "可用",
+        "instance": {
+            "ask_start": "Instance is not running. Start it now?",
+            "start_title": "Start Instance",
+            "started": "Instance started"
+        },
         "low_quota": "低配額",
         "ultra": "ULTRA",
         "pro": "PRO",
@@ -109,6 +120,11 @@
         "refresh_all": "重新整理所有",
         "refresh_selected": "重新整理 ({{count}})",
         "export_selected": "匯出 ({{count}})",
+        "import_json": "Import",
+        "import_success": "Successfully imported {{count}} accounts",
+        "import_partial": "Import completed: {{success}} succeeded, {{fail}} failed",
+        "import_fail": "Import failed: {{error}}",
+        "import_invalid_format": "Invalid JSON format, please ensure the file contains email and refresh_token fields",
         "delete_selected": "刪除 ({{count}})",
         "current": "當前",
         "current_badge": "當前",
@@ -130,6 +146,7 @@
         "last_used": "最後使用",
         "reset_time": "重置時間",
         "switch_to": "切換到此帳號",
+        "switch_hot": "Hot Switch (No Restart)",
         "actions": "操作",
         "device_fingerprint": "裝置指紋",
         "device_fingerprint_dialog": {
@@ -167,8 +184,7 @@
             "restored": "已恢復",
             "deleted": "已刪除",
             "directory_opened": "已開啟裝置儲存目錄",
-            "original_fingerprint_not_found": "未找到原始指紋",
-            "storage_json_not_found": "未找到 storage.json，請確認 Antigravity 已運行過並生成配置文件"
+            "original_fingerprint_not_found": "未找到原始指紋"
         },
         "warmup_all": "一鍵預熱",
         "warmup_selected": "預熱 ({{count}})",
@@ -269,6 +285,7 @@
             "general": "通用",
             "account": "帳號",
             "proxy": "代理設定",
+            "instances": "Instances",
             "advanced": "進階",
             "about": "關於"
         },
@@ -385,6 +402,36 @@
             "support_alipay": "Alipay",
             "support_wechat": "Weixin Pay",
             "support_buymeacoffee": "Buy Me a Coffee"
+        },
+        "instances": {
+            "title": "Instance Manager",
+            "description": "Manage multiple independent Antigravity instances, each can bind different accounts",
+            "create": "Create Instance",
+            "create_new": "Create New Instance",
+            "name": "Instance Name",
+            "name_placeholder": "e.g., Work Account, Personal Project",
+            "data_dir": "Data Directory",
+            "data_dir_placeholder": "Select --user-data-dir path",
+            "data_dir_hint": "This path will be used as the --user-data-dir parameter. Select an empty directory or an existing Antigravity data directory",
+            "select_data_dir": "Select Instance Data Directory",
+            "create_validation_error": "Please enter instance name and data directory",
+            "created": "Instance created successfully",
+            "deleted": "Instance deleted",
+            "updated": "Instance updated",
+            "started": "Instance started",
+            "stopped": "Instance stopped",
+            "default": "Default",
+            "cannot_delete_default": "Cannot delete default instance",
+            "start": "Start Instance",
+            "stop": "Stop Instance",
+            "accounts_count": "{{count}} accounts",
+            "empty": "No instances yet, click the button above to create one",
+            "tip_title": "Usage Tips",
+            "tip_content": "When switching accounts, the system will only restart the instance that the account belongs to. Other instances will keep running. To run multiple instances simultaneously, ensure they use different data directories.",
+            "bound_accounts": "Bound Accounts",
+            "move_account": "Move to another instance",
+            "move_to": "Move to:",
+            "account_moved": "Account moved to new instance"
         }
     },
     "tray": {
@@ -538,12 +585,7 @@
                 "max_wait": "最大等待時長 (秒)",
                 "max_wait_tooltip": "僅在“快取優先”模式下生效：如果帳號限流重置時間小於此值，則原地等待而非切換帳號。",
                 "clear_bindings": "清除會話繫結",
-                "clear_bindings_tooltip": "立即斷開所有會話與帳號的繫結關係，強制下一次請求重新分配帳號。",
-                "fixed_account": "固定帳戶模式",
-                "fixed_account_tooltip": "啟用後，所有 API 請求將只使用所選帳戶，而不會在帳戶之間輪換。",
-                "round_robin_set": "輪詢模式已啟用",
-                "fixed_account_set": "固定帳戶模式已啟用",
-                "account_changed": "帳戶已變更為：{{email}}"
+                "clear_bindings_tooltip": "立即斷開所有會話與帳號的繫結關係，強制下一次請求重新分配帳號。"
             },
             "experimental": {
                 "title": "實驗性設定 (Experimental)",
@@ -560,6 +602,9 @@
             "python_gemini": "# 需要安裝: pip install google-generativeai\nimport google.generativeai as genai\n\n# 使用 Antigravity 代理地址 (推薦 127.0.0.1)\ngenai.configure(\n    api_key=\"{{apiKey}}\",\n    transport='rest',\n    client_options={'api_endpoint': '{{rawBaseUrl}}'}\n)\n\nmodel = genai.GenerativeModel('{{modelId}}')\nresponse = model.generate_content(\"Hello\")\nprint(response.text)",
             "python_openai_image": "from openai import OpenAI\n\nclient = OpenAI(\n    base_url=\"{{baseUrl}}\",\n    api_key=\"{{apiKey}}\"\n)\n\nresponse = client.chat.completions.create(\n    model=\"{{modelId}}\",\n    # 方式 1: 使用 size 參數 (推薦)\n    # 支援: \"1024x1024\" (1:1), \"1280x720\" (16:9), \"720x1280\" (9:16), \"1216x896\" (4:3)\n    extra_body={ \"size\": \"1024x1024\" },\n\n    # 方式 2: 使用模型後綴\n    # 例如: gemini-3-pro-image-16-9, gemini-3-pro-image-4-3\n    # model=\"gemini-3-pro-image-16-9\",\n    messages=[{\n        \"role\": \"user\",\n        \"content\": \"畫一個未來城市\"\n    }]\n)\n\nprint(response.choices[0].message.content)",
             "python_openai": "from openai import OpenAI\n\nclient = OpenAI(\n    base_url=\"{{baseUrl}}\",\n    api_key=\"{{apiKey}}\"\n)\n\nresponse = client.chat.completions.create(\n    model=\"{{modelId}}\",\n    messages=[{\"role\": \"user\", \"content\": \"Hello\"}]\n)\n\nprint(response.choices[0].message.content)"
+        },
+        "examples": {
+            "title": "使用示例"
         },
         "dialog": {
             "confirm_regenerate": "確定要生成新的 API Key 嗎？舊的 Key 將立即失效。",
@@ -617,8 +662,6 @@
             "apply_presets": "應用預設對映",
             "presets_applied": "預設對映已應用",
             "custom_mappings": "自定義對映 (Custom Mappings)",
-            "original_id": "原始模型 ID",
-            "route_to": "路由目標",
             "group_title": "模型家族分組 (Series Groups)",
             "gemini3_group_label": "Gemini 3 (推薦)",
             "gemini3_option_high": "gemini-3-pro-high (高品質)",
@@ -662,11 +705,10 @@
             "no_custom_mapping": "暫無自定義精確對映",
             "gemini3_only_warning": "⚠️ 僅支援 Gemini 3 系列",
             "default_suffix": "（預設）",
+            "original_id": "原始模型 ID",
+            "route_to": "路由目標",
             "select_target_model": "選擇目標模型",
             "original_placeholder": "原始名 (如 gpt-4 或 gpt-4*)"
-        },
-        "examples": {
-            "title": "使用示例"
         },
         "multi_protocol": {
             "title": "多協定支援 (Multi-Protocol Support)",
@@ -681,6 +723,13 @@
             "quick_integration": "快速整合 (Quick Integration)",
             "click_tip": "👆 點擊模型以更新程式碼範例",
             "copy_base": "複製 Base"
+        },
+        "supported_models": {
+            "title": "支援模型與整合 (Supported Models & Integration)",
+            "model_name": "模型名稱",
+            "model_id": "模型 ID",
+            "description": "描述",
+            "action": "操作"
         },
         "cli_sync": {
             "title": "CLI 配置一鍵同步",
@@ -698,26 +747,18 @@
             "btn_view": "檢視當前配置",
             "btn_restore": "恢復預設配置",
             "btn_restore_backup": "還原原有配置",
-            "restore_backup_confirm": "檢測到舊的配置檔案備份，確定要還原嗎？",
-            "sync_confirm_title": "同步確認",
-            "sync_confirm_message": "即將為您同步 {{name}} 的配置。⚠️ 注意：此操作將覆蓋您本地已有的配置檔案（如登入狀態、API Key 等）。確定要繼續嗎？",
             "restore_confirm": "確定要將 {{name}} 的配置恢復為官方預設 URL 嗎？",
+            "restore_backup_confirm": "檢測到舊的配置檔案備份，確定要還原嗎？",
             "modal": {
                 "view_title": "{{name}} 配置文件內容",
                 "copy_success": "配置內容已複製到剪貼簿"
             },
             "toast": {
-                "config_missing": "請先生成 API Key 並啟動服務",
                 "sync_success": "同步成功！{{name}} 已準備就緒。",
                 "sync_error": "同步 {{name}} 失敗: {{error}}"
-            }
-        },
-        "supported_models": {
-            "title": "支援模型與整合 (Supported Models & Integration)",
-            "model_name": "模型名稱",
-            "model_id": "模型 ID",
-            "description": "描述",
-            "action": "操作"
+            },
+            "sync_confirm_title": "同步確認",
+            "sync_confirm_message": "即將為您同步 {{name}} 的配置。⚠️ 注意：此操作將覆蓋您本地已有的配置檔案（如登入狀態、API Key 等）。確定要繼續嗎？"
         }
     },
     "monitor": {
@@ -764,10 +805,10 @@
             "tokens": "Token 消耗 (輸入/輸出)",
             "time": "請求時間",
             "model": "使用模型",
-            "id": "請求 ID",
-            "protocol": "協定類型",
             "mapped_model": "路由後模型",
+            "protocol": "協定類型",
             "account_used": "使用帳號",
+            "id": "請求 ID",
             "payload_empty": "無封包資料"
         },
         "dialog": {
@@ -807,6 +848,15 @@
         "percentage": "佔比",
         "no_data": "暫無資料"
     },
+    "errors": {
+        "stream": {
+            "timeout_error": "Request timeout, please check your network connection",
+            "connection_error": "Connection failed, please check your network or proxy settings",
+            "decode_error": "Network unstable, data transmission interrupted. Try: 1) Check network 2) Switch proxy 3) Retry",
+            "stream_error": "Stream transmission error, please retry later",
+            "unknown_error": "Unknown error occurred, please retry later"
+        }
+    },
     "instances": {
         "title": "實例管理",
         "description": "管理多個 Antigravity 實例",
@@ -836,5 +886,62 @@
         "no_active_account": "未激活帳號",
         "tip_title": "提示",
         "tip_content": "每個實例使用獨立的數據目錄，可同時運行多個帳號。"
+    },
+    "mitm": {
+        "title": "MITM Proxy Monitor",
+        "subtitle": "Monitor Antigravity internal API calls",
+        "config": {
+            "port": "Listen Port",
+            "port_tooltip": "Local port for MITM proxy to listen on",
+            "domains": "Target Domains",
+            "domains_tooltip": "Target domains to intercept, separated by comma",
+            "root_ca": "Root CA Configuration",
+            "cert_path": "Certificate Path (PEM)",
+            "key_path": "Private Key Path (PEM)"
+        },
+        "status": {
+            "valid": "Valid",
+            "invalid": "Invalid"
+        },
+        "stats": {
+            "port": "Port",
+            "certs": "Cert Cache",
+            "requests": "Requests",
+            "speed": "Avg Speed",
+            "tokens": "Token Stats",
+            "input": "Input",
+            "output": "Output",
+            "by_model": "Stats by Model"
+        },
+        "monitoring": {
+            "enabled": "Monitoring Enabled",
+            "disabled": "Monitoring Disabled"
+        },
+        "action": {
+            "validate_ca": "Validate Root CA",
+            "clear_stats": "Clear Stats",
+            "clear_cache": "Clear Cert Cache",
+            "select_file": "Select File"
+        },
+        "error": {
+            "no_ca_path": "Please set Root CA certificate and key paths first",
+            "ca_invalid": "Root CA validation failed"
+        },
+        "success": {
+            "started": "MITM proxy started",
+            "stopped": "MITM proxy stopped",
+            "ca_valid": "Root CA validation successful"
+        },
+        "hint": {
+            "title": "Usage Instructions",
+            "step1": "Prepare ECDSA Root CA certificate and private key (only ECDSA P-256/P-384 supported)",
+            "step2": "Install Root CA certificate to system trusted root CA store",
+            "step3": "Configure Antigravity to use proxy address: 127.0.0.1:8081",
+            "step4": "After starting MITM proxy, all HTTPS requests to target domains will be intercepted and monitored",
+            "cert_install": "Certificate Installation Commands:",
+            "windows_cmd": "Windows (Admin Privileges):",
+            "macos_cmd": "macOS:",
+            "linux_cmd": "Linux:"
+        }
     }
 }
