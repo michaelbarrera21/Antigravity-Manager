@@ -280,7 +280,7 @@ export default function ApiProxy() {
     };
 
     // 专门处理模型映射的热更新 (全量)
-    const handleMappingUpdate = async (type: 'custom', key: string, value: string) => {
+    const handleMappingUpdate = async (_type: 'custom', key: string, value: string) => {
         if (!appConfig) return;
 
         const newConfig = { ...appConfig.proxy };
